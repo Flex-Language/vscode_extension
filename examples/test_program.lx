@@ -1,0 +1,52 @@
+// Test Flex program with .lx extension
+
+// Variable declarations
+rakm number = 10
+kasr decimal = 3.14
+nass message = "Hello, Flex!"
+so2al isValid = true
+dorg items = [1, 2, 3, 4, 5]
+
+// Function definition
+fun factorial(rakm n) {
+    cond (n <= 1) {
+        rg3 1
+    } else {
+        rg3 n * factorial(n - 1)
+    }
+}
+
+// Main program
+etb3("Welcome to Flex!")
+etb3("The factorial of " + number + " is " + factorial(number))
+
+// Loop example
+etb3("Counting from 1 to 5:")
+for (rakm i = 1; i <= 5; i++) {
+    etb3(i)
+}
+
+// Conditional example
+cond (number > 5) {
+    etb3("Number is greater than 5")
+} elif (number == 5) {
+    etb3("Number is equal to 5")
+} else {
+    etb3("Number is less than 5")
+}
+
+// Using imported functionality
+geeb "math_utils.lx"  // This would import another Flex file (.lx, .flex, or .fx extensions are all supported)
+
+// User input example
+etb3("Please enter your name:")
+nass userName = da5l()
+etb3("Hello, " + userName + "!")
+
+// Function with multiple parameters
+fun calculateArea(kasr length, kasr width) {
+    rg3 length * width
+}
+
+kasr area = calculateArea(5.0, 3.0)
+etb3("The area is: " + area)

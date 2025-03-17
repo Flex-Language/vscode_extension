@@ -1,0 +1,367 @@
+{
+  "name": "flex-language",
+  "displayName": "Flex Programming Language",
+  "description": "Language support for the Flex programming language",
+  "version": "0.2.6",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "publisher": "mikawi",
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:flex"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "flex",
+        "aliases": [
+          "Flex",
+          "flex"
+        ],
+        "extensions": [
+          ".lx",
+          ".flex",
+          ".fx"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flex",
+        "scopeName": "source.flex",
+        "path": "./syntaxes/flex.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "flex",
+        "path": "./snippets/flex.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "flex.format",
+        "title": "Flex: Format Document"
+      },
+      {
+        "command": "flex.run",
+        "title": "Flex: Run File"
+      },
+      {
+        "command": "flex.lint",
+        "title": "Flex: Lint Current File"
+      },
+      {
+        "command": "flex.extractVariable",
+        "title": "Flex: Extract to Variable"
+      },
+      {
+        "command": "flex.declareVariable",
+        "title": "Flex: Declare Variable"
+      },
+      {
+        "command": "flex.runWithAI",
+        "title": "Flex: Run File with AI",
+        "icon": {
+          "light": "resources/light/ai.svg",
+          "dark": "resources/dark/ai.svg"
+        }
+      },
+      {
+        "command": "flex.createNewFile",
+        "title": "Flex: Create New Flex File"
+      },
+      {
+        "command": "flex.goToDefinition",
+        "title": "Flex: Go to Definition"
+      },
+      {
+        "command": "flex.findReferences",
+        "title": "Flex: Find All References"
+      },
+      {
+        "command": "flex.runFile",
+        "title": "Run Flex File",
+        "icon": {
+          "light": "resources/light/run.svg",
+          "dark": "resources/dark/run.svg"
+        }
+      },
+      {
+        "command": "flex.stopRun",
+        "title": "Flex: Stop Running"
+      },
+      {
+        "command": "flex.aiExplain",
+        "title": "Flex: Explain Code",
+        "icon": {
+          "light": "resources/light/ai.svg",
+          "dark": "resources/dark/ai.svg"
+        }
+      },
+      {
+        "command": "flex.aiGenerate",
+        "title": "Flex: Generate Code",
+        "icon": {
+          "light": "resources/light/ai.svg",
+          "dark": "resources/dark/ai.svg"
+        }
+      },
+      {
+        "command": "flex.aiTranslate",
+        "title": "Flex: Translate to Flex",
+        "icon": {
+          "light": "resources/light/ai.svg",
+          "dark": "resources/dark/ai.svg"
+        }
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "flex.runFile",
+          "when": "editorLangId == flex",
+          "group": "navigation@1"
+        },
+        {
+          "command": "flex.runWithAI",
+          "when": "editorLangId == flex",
+          "group": "navigation@2"
+        },
+        {
+          "command": "flex.stopRun",
+          "when": "flexRunning",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "flex.runFile",
+          "when": "editorLangId == flex",
+          "group": "flex@1"
+        },
+        {
+          "command": "flex.runWithAI",
+          "when": "editorLangId == flex",
+          "group": "flex@2"
+        },
+        {
+          "command": "flex.format",
+          "when": "editorLangId == flex",
+          "group": "1_run"
+        },
+        {
+          "command": "flex.lint",
+          "when": "editorLangId == flex",
+          "group": "1_run"
+        },
+        {
+          "command": "flex.extractVariable",
+          "when": "editorLangId == flex && editorHasSelection",
+          "group": "2_refactor"
+        },
+        {
+          "command": "flex.goToDefinition",
+          "when": "editorLangId == flex",
+          "group": "3_navigation"
+        },
+        {
+          "command": "flex.findReferences",
+          "when": "editorLangId == flex",
+          "group": "3_navigation"
+        },
+        {
+          "command": "flex.aiExplain",
+          "when": "editorLangId == flex && editorHasSelection",
+          "group": "flex"
+        },
+        {
+          "command": "flex.aiGenerate",
+          "when": "editorLangId == flex",
+          "group": "flex"
+        },
+        {
+          "command": "flex.aiTranslate",
+          "when": "editorHasSelection",
+          "group": "flex"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "flex.createNewFile",
+          "group": "navigation",
+          "when": "explorerResourceIsFolder"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "flex.run",
+        "key": "f5",
+        "mac": "f5",
+        "when": "editorLangId == flex"
+      },
+      {
+        "command": "flex.format",
+        "key": "alt+shift+f",
+        "mac": "alt+shift+f",
+        "when": "editorLangId == flex"
+      },
+      {
+        "command": "flex.lint",
+        "key": "alt+shift+l",
+        "mac": "alt+shift+l",
+        "when": "editorLangId == flex"
+      },
+      {
+        "command": "flex.runWithAI",
+        "key": "ctrl+f5",
+        "mac": "cmd+f5",
+        "when": "editorLangId == flex"
+      },
+      {
+        "command": "flex.goToDefinition",
+        "key": "f12",
+        "mac": "f12",
+        "when": "editorLangId == flex"
+      },
+      {
+        "command": "flex.findReferences",
+        "key": "shift+f12",
+        "mac": "shift+f12",
+        "when": "editorLangId == flex"
+      }
+    ],
+    "configuration": {
+      "title": "Flex Language",
+      "properties": {
+        "flex.linting.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable linting for Flex files"
+        },
+        "flex.linting.maxNumberOfProblems": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of problems to report for a file"
+        },
+        "flex.linting.rules": {
+          "type": "object",
+          "default": {
+            "missingBraces": "warning",
+            "undefinedVariables": "warning",
+            "unusedVariables": "info",
+            "semicolons": "warning"
+          },
+          "description": "Configure severity levels for different linting rules"
+        },
+        "flex.formatting.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable automatic formatting for Flex files"
+        },
+        "flex.formatting.indentSize": {
+          "type": "number",
+          "default": 4,
+          "description": "Number of spaces to use for indentation"
+        },
+        "flex.formatting.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically format Flex files on save"
+        },
+        "flex.path": {
+          "type": "string",
+          "default": "run-flex.js",
+          "description": "Path to the Flex runner script"
+        },
+        "flex.flexPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Flex interpreter directory"
+        },
+        "flex.ai.enable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable AI features"
+        },
+        "flex.ai.model": {
+          "type": "string",
+          "enum": ["openai-gpt4o-mini", "openai", "qwen", "lmstudio"],
+          "default": "qwen",
+          "description": "AI model to use (openai-gpt4o-mini is recommended)"
+        },
+        "flex.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for OpenAI (if using OpenAI model)"
+        },
+        "flex.ai.lmstudioUrl": {
+          "type": "string",
+          "default": "http://localhost:1234/v1",
+          "description": "URL for LMStudio API (if using LMStudio model)"
+        },
+        "flex.debug.enable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable debug mode for the extension"
+        },
+        "flex.debug.verboseLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable verbose logging for debugging"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.39.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^7.0.0",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.4"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "keywords": [
+    "flex",
+    "language",
+    "programming",
+    "syntax",
+    "highlighting"
+  ],
+  "author": "Flex Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hassan220022/vscode-flex.git"
+  }
+}

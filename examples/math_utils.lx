@@ -1,0 +1,81 @@
+// Flex math utilities
+
+// Function to calculate the square of a number
+fun square(kasr x) {
+    rg3 x * x
+}
+
+// Function to calculate the cube of a number
+fun cube(kasr x) {
+    rg3 x * x * x
+}
+
+// Function to check if a number is prime
+fun isPrime(rakm num) {
+    // Handle special cases
+    cond (num <= 1) {
+        rg3 false
+    }
+    cond (num <= 3) {
+        rg3 true
+    }
+    cond (num % 2 == 0 || num % 3 == 0) {
+        rg3 false
+    }
+    
+    rakm i = 5
+    while (i * i <= num) {
+        cond (num % i == 0 || num % (i + 2) == 0) {
+            rg3 false
+        }
+        i = i + 6
+    }
+    
+    rg3 true
+}
+
+// Calculate the greatest common divisor
+fun gcd(rakm a, rakm b) {
+    while (b != 0) {
+        rakm temp = b
+        b = a % b
+        a = temp
+    }
+    rg3 a
+}
+
+// Calculate the factorial using iteration instead of recursion
+fun iterativeFactorial(rakm n) {
+    cond (n <= 1) {
+        rg3 1
+    }
+    
+    rakm result = 1
+    for (rakm i = 2; i <= n; i++) {
+        result = result * i
+    }
+    
+    rg3 result
+}
+
+// Calculate the nth Fibonacci number
+fun fibonacci(rakm n) {
+    cond (n <= 0) {
+        rg3 0
+    }
+    cond (n == 1 || n == 2) {
+        rg3 1
+    }
+    
+    rakm a = 1
+    rakm b = 1
+    rakm result = 0
+    
+    for (rakm i = 3; i <= n; i++) {
+        result = a + b
+        a = b
+        b = result
+    }
+    
+    rg3 result
+}

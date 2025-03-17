@@ -1,0 +1,17 @@
+[
+  {
+    "key": "f5",
+    "command": "flex.run",
+    "when": "editorLangId == flex"
+  },
+  {
+    "key": "alt+shift+f",
+    "command": "flex.format",
+    "when": "editorLangId == flex"
+  },
+  {
+    "key": "alt+shift+l",
+    "command": "flex.lint",
+    "when": "editorLangId == flex"
+  }
+]
