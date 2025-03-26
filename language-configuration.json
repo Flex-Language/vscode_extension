@@ -1,6 +1,6 @@
 {
     "comments": {
-        "lineComment": ["//", "#"],
+        "lineComment": "//",
         "blockComment": ["/*", "*/"]
     },
     "brackets": [
@@ -26,8 +26,8 @@
     ],
     "folding": {
         "markers": {
-            "start": "^\\s*// ?#?region\\b|^\\s*# ?region\\b",
-            "end": "^\\s*// ?#?endregion\\b|^\\s*# ?endregion\\b"
+            "start": "^\\s*//\\s*#?region\\b|^\\s*#\\s*region\\b",
+            "end": "^\\s*//\\s*#?endregion\\b|^\\s*#\\s*endregion\\b"
         }
     },
     "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
