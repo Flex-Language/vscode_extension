@@ -2,7 +2,7 @@
   "name": "flex-language",
   "displayName": "Flex Language Support",
   "description": "Language support for the Flex programming language - a multi-syntax language for beginners and advanced developers",
-  "version": "1.1.0",
+  "version": "0.1.0",
   "publisher": "mikawi",
   "author": {
     "name": "mikawi"
@@ -13,7 +13,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^0.1.0"
   },
   "categories": [
     "Programming Languages",
