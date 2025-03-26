@@ -4,1413 +4,830 @@ const path = require('path');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 const fs = require('fs');
+const os = require('os');
+
+// Define built-in functions and their descriptions for hover information
+const builtInFunctions = {
+    'etb3': '```flex\n(method) etb3(message?: any, ...optionalParams: any[]): void\n```\n\nPrints to stdout with newline. Multiple arguments can be passed, with the first used as the primary message and all additional used as substitution values similar to printf().\n\n```flex\nconst x = 5;\netb3("Value: {x}");\n// Prints: Value: 5, to stdout\n```\n\nSee `print()`, `out()`, `output()` for more information.',
+    
+    'print': '```flex\n(method) print(message?: any, ...optionalParams: any[]): void\n```\n\nPrints to stdout with newline. Multiple arguments can be passed, with the first used as the primary message and all additional used as substitution values.\n\n```flex\nconst count = 5;\nprint("count: {count}");\n// Prints: count: 5, to stdout\n```\n\nSee `etb3()`, `out()`, `output()` for more information.',
+    
+    'out': '```flex\n(method) out(message?: any, ...optionalParams: any[]): void\n```\n\nAlias for print - outputs the given value with newline. Multiple arguments can be passed, with the first used as the primary message and all additional used as substitution values.\n\n```flex\nconst x = 10;\nout("x = {x}");\n// Prints: x = 10, to stdout\n```\n\nSee `print()`, `etb3()`, `output()` for more information.',
+    
+    'output': '```flex\n(method) output(message?: any, ...optionalParams: any[]): void\n```\n\nAlias for print - outputs the given value with newline. Multiple arguments can be passed, with the first used as the primary message and all additional used as substitution values.\n\n```flex\nconst result = 42;\noutput("The answer is {result}");\n// Prints: The answer is 42, to stdout\n```\n\nSee `print()`, `etb3()`, `out()` for more information.',
+    
+    'printf': '```flex\n(method) printf(format: string, ...args: any[]): void\n```\n\nPrints formatted string to stdout with newline. Supports string interpolation with curly braces {} similar to f-strings.\n\n```flex\nconst name = "Alice";\nconst age = 30;\nprintf("Name: {name}, Age: {age}");\n// Prints: Name: Alice, Age: 30, to stdout\n```\n\nSee `print()`, `etb3()` for more information.',
+    
+    'cout': '```flex\n(method) cout(message?: any, ...optionalParams: any[]): void\n```\n\nC++-style alias for print - outputs the given value to stdout. Multiple arguments can be passed.\n\n```flex\nconst score = 95;\ncout("Score: {score}");\n// Prints: Score: 95, to stdout\n```\n\nSee `print()`, `etb3()` for more information.',
+    
+    'scan': '```flex\n(method) scan(): string\n```\n\nReads a line of input from stdin and returns it as a string.\n\n```flex\netb3("Enter your name:");\nconst name = scan();\netb3("Hello, {name}!");\n// If user inputs "Bob", prints: Hello, Bob!\n```\n\nSee `input()`, `read()`, `da5l()` for more information.',
+    
+    'read': '```flex\n(method) read(): string\n```\n\nAlias for input - reads a line from stdin and returns it as a string.\n\n```flex\netb3("Enter your age:");\nconst age = read();\netb3("You are {age} years old.");\n// If user inputs "25", prints: You are 25 years old.\n```\n\nSee `input()`, `scan()`, `da5l()` for more information.',
+    
+    'input': '```flex\n(method) input(): string\n```\n\nReads a line of input from stdin and returns it as a string.\n\n```flex\netb3("Enter a number:");\nconst num = input();\netb3("You entered: {num}");\n// If user inputs "42", prints: You entered: 42\n```\n\nSee `read()`, `scan()`, `da5l()` for more information.',
+    
+    'da5l': '```flex\n(method) da5l(): string\n```\n\nArabic alias for input - reads a line from stdin and returns it as a string.\n\n```flex\netb3("أدخل اسمك:");\nconst name = da5l();\netb3("مرحبًا، {name}!");\n// If user inputs "محمد", prints: مرحبًا، محمد!\n```\n\nSee `input()`, `read()`, `scan()` for more information.',
+    
+    'da5al': '```flex\n(method) da5al(): string\n```\n\nArabic alias for input - reads a line from stdin and returns it as a string.\n\n```flex\netb3("أدخل رقمًا:");\nconst number = da5al();\netb3("الرقم المدخل: {number}");\n// If user inputs "10", prints: الرقم المدخل: 10\n```\n\nSee `input()`, `read()`, `scan()`, `da5l()` for more information.',
+    
+    'd5l': '```flex\n(method) d5l(): string\n```\n\nShortened Arabic alias for input - reads a line from stdin and returns it as a string.\n\n```flex\netb3("أدخل قيمة:");\nconst value = d5l();\netb3("القيمة: {value}");\n// If user inputs "صحيح", prints: القيمة: صحيح\n```\n\nSee `input()`, `read()`, `scan()`, `da5l()` for more information.'
+};
+
+// Language keywords with descriptions
+const languageKeywords = {
+    'lw': '```flex\nlw (condition) { statements }\n```\n\nConditional statement in Flex (equivalent to "if" in other languages). Executes the code block if the condition evaluates to true.\n\n```flex\nconst x = 10;\nlw x > 5 {\n  etb3("x is greater than 5");\n}\n// Prints: x is greater than 5\n```\n\nSee `aw`, `gher` for related conditional statements.',
+    
+    'aw': '```flex\naw (condition) { statements }\n```\n\nSecondary conditional statement (equivalent to "else if" in other languages). Must follow a `lw` or another `aw` block.\n\n```flex\nconst x = 3;\nlw x > 5 {\n  etb3("x is greater than 5");\n} aw x > 0 {\n  etb3("x is positive but not greater than 5");\n}\n// Prints: x is positive but not greater than 5\n```\n\nSee `lw`, `gher` for related conditional statements.',
+    
+    'gher': '```flex\ngher { statements }\n```\n\nAlternative conditional block (equivalent to "else" in other languages). Executes when no preceding `lw` or `aw` conditions are true.\n\n```flex\nconst x = -1;\nlw x > 0 {\n  etb3("x is positive");\n} gher {\n  etb3("x is zero or negative");\n}\n// Prints: x is zero or negative\n```\n\nSee `lw`, `aw` for related conditional statements.',
+    
+    'talama': '```flex\ntalama (condition) { statements }\n```\n\nLoop that executes while condition is true (equivalent to "while" in other languages).\n\n```flex\nlet i = 0;\ntalama i < 3 {\n  etb3(i);\n  i++;\n}\n// Prints:\n// 0\n// 1\n// 2\n```\n\nSee `karr` for another loop structure.',
+    
+    'karr': '```flex\nkarr variable=start l7d end { statements }\n```\n\nLoop structure in Flex (equivalent to "for" in other languages). Iterates from start value to end value.\n\n```flex\nkarr i=0 l7d 3 {\n  etb3("Index: {i}");\n}\n// Prints:\n// Index: 0\n// Index: 1\n// Index: 2\n// Index: 3\n```\n\nSee `talama` for another loop structure.',
+    
+    'sndo2': '```flex\nsndo2 functionName(param1, param2, ...) { statements }\n```\n\nDefines a function in Flex. The function can accept parameters and return values using `rg3`.\n\n```flex\nsndo2 add(a, b) {\n  rg3 a + b;\n}\n\nconst result = add(5, 3);\netb3("Sum: {result}");\n// Prints: Sum: 8\n```\n\nSee `rg3` for returning values from functions.',
+    
+    'rg3': '```flex\nrg3 value;\n```\n\nReturns a value from a function (equivalent to "return" in other languages).\n\n```flex\nsndo2 isEven(num) {\n  lw num % 2 == 0 {\n    rg3 sa7;\n  }\n  rg3 ghalt;\n}\n\nconst check = isEven(4);\netb3("Is 4 even? {check}");\n// Prints: Is 4 even? sa7\n```\n\nSee `sndo2` for function definition.',
+    
+    'rakm': '```flex\nrakm variableName = value;\n```\n\nInteger data type (equivalent to "int" in other languages).\n\n```flex\nrakm age = 25;\netb3("Age: {age}");\n// Prints: Age: 25\n```\n\nSee `kasr`, `klma`, `so2al` for other data types.',
+    
+    'kasr': '```flex\nkasr variableName = value;\n```\n\nFloating-point data type (equivalent to "float" in other languages).\n\n```flex\nkasr pi = 3.14159;\netb3("Pi: {pi}");\n// Prints: Pi: 3.14159\n```\n\nSee `rakm`, `klma`, `so2al` for other data types.',
+    
+    'klma': '```flex\nklma variableName = "value";\n```\n\nString data type (equivalent to "string" in other languages).\n\n```flex\nklma greeting = "Hello, World!";\netb3(greeting);\n// Prints: Hello, World!\n```\n\nSee `rakm`, `kasr`, `so2al` for other data types.',
+    
+    'so2al': '```flex\nso2al variableName = sa7|ghalt;\n```\n\nBoolean data type (equivalent to "bool" in other languages).\n\n```flex\nso2al isActive = sa7;\netlb3("Is active: {isActive}");\n// Prints: Is active: sa7\n```\n\nSee `rakm`, `kasr`, `klma` for other data types.',
+    
+    'dorg': '```flex\ndorg variableName = [value1, value2, ...];\n```\n\nList/array data type (equivalent to "array" or "list" in other languages).\n\n```flex\ndorg numbers = [1, 2, 3, 4];\netb3("First number: {numbers[0]}");\n// Prints: First number: 1\n```\n\nSee `rakm`, `kasr`, `klma` for other data types.',
+    
+    'w2f': '```flex\nw2f;\n```\n\nExits the current loop (equivalent to "break" in other languages).\n\n```flex\nkarr i=0 l7d 10 {\n  lw i == 5 {\n    w2f;\n  }\n  etb3(i);\n}\n// Prints: 0, 1, 2, 3, 4\n```\n\nSee `talama`, `karr` for loop structures.',
+    
+    'sa7': '```flex\nsa7\n```\n\nBoolean true value (equivalent to "true" in other languages).\n\n```flex\nso2al flag = sa7;\nlw flag {\n  etb3("Flag is true");\n}\n// Prints: Flag is true\n```\n\nSee `ghalt`, `so2al` for related boolean concepts.',
+    
+    'ghalt': '```flex\nghalt\n```\n\nBoolean false value (equivalent to "false" in other languages).\n\n```flex\nso2al flag = ghalt;\nlw flag {\n  etb3("This won\'t print");\n} gher {\n  etb3("Flag is false");\n}\n// Prints: Flag is false\n```\n\nSee `sa7`, `so2al` for related boolean concepts.',
+    
+    'geep': '```flex\ngeep "filename.lx";\n```\n\nImports code from another file (equivalent to "import" or "include" in other languages).\n\n```flex\n// In main.lx\ngeep "math.lx";\nconst result = add(5, 3);\netb3("Result: {result}");\n// If math.lx contains add function, prints: Result: 8\n```'
+};
 
 /**
- * Check if the Flex interpreter is installed
- * @returns {Promise<boolean>} True if installed, false otherwise
+ * Verify that the compiler produces the expected usage output
+ * @param {string} compilerPath Path or command to test
+ * @returns {Promise<boolean>} True if output matches, false otherwise
  */
-async function checkFlexInstalled() {
+async function verifyCompilerOutput(compilerPath) {
     try {
-        // Try to run 'flex --version' to check if it's installed
-        const { stdout } = await execAsync('flex --version', { timeout: 2000 });
-        console.log('Flex interpreter found:', stdout.trim());
-        return true;
+        const { stderr, stdout } = await execAsync(`"${compilerPath}"`, { timeout: 2000 });
+        // Check for any output that suggests this is the Flex compiler
+        // More permissive checking for flexibility
+        return (stdout.includes('flex') && stdout.includes('Usage')) || 
+               (stderr.includes('flex') && stderr.includes('Usage')) ||
+               stdout.includes('.lx') || stderr.includes('.lx') ||
+               stdout.includes('.flex') || stderr.includes('.flex');
     } catch (error) {
-        console.log('Flex interpreter not found:', error.message);
-        return false;
+        // Some compilers might return exit code 1 when run without arguments
+        return (error.stdout && (error.stdout.includes('flex') || error.stdout.includes('.lx') || error.stdout.includes('.flex'))) ||
+               (error.stderr && (error.stderr.includes('flex') || error.stderr.includes('.lx') || error.stderr.includes('.flex')));
     }
 }
 
 /**
- * Show download prompt for Flex interpreter
+ * Get OS-specific Flex compiler paths
+ * @returns {string[]} Array of possible compiler paths
+ */
+function getOSSpecificPaths() {
+    const home = process.env.HOME || process.env.USERPROFILE;
+    const basePaths = [
+        path.join(home, 'Developer/Flex-1'),
+        path.join(home, 'Flex-1'),
+        path.join(home, 'flex'),
+        '/usr/local/flex',
+        '/opt/flex'
+    ];
+
+    const osPaths = {
+        'macOS': [ // macOS
+            '/usr/local/bin/flex',
+            'src/flex_tester/flex',
+            'build/flex',
+            'bin/flex',
+            'flex'
+        ],
+        'win32': [ // Windows
+            'C:\\Program Files (x86)\\Flex\\flex.exe',
+            'C:\\Program Files\\Flex\\flex.exe',
+            'C:\\Flex\\flex.exe',
+        ],
+        'linux': [ // Linux
+            'src/flex_tester/flex',
+            'build/flex',
+            'bin/flex',
+            'flex'
+        ]
+    };
+
+    const platform = os.platform();
+    const paths = [];
+    
+    basePaths.forEach(base => {
+        osPaths[platform].forEach(compiler => {
+            paths.push(path.join(base, compiler));
+        });
+    });
+
+    return paths;
+}
+
+/**
+ * Show download prompt for Flex compiler
  */
 function showFlexDownloadPrompt() {
-    const downloadUrl = 'https://github.com/Flex-Language/Flex/releases/';
-    const message = 'Flex interpreter not found. You need to install it to run Flex programs.';
+    const releasesUrl = 'https://github.com/Flex-Language/Flex/releases/';
+    const message = 'Flex compiler not found. You need to install it and ensure it\'s in your PATH to run Flex programs.';
     
-    vscode.window.showErrorMessage(message, 'Download Flex', 'Dismiss').then(selection => {
+    vscode.window.showErrorMessage(message, 'Download Flex', 'Installation Guide', 'Dismiss').then(selection => {
         if (selection === 'Download Flex') {
-            vscode.env.openExternal(vscode.Uri.parse(downloadUrl));
+            vscode.env.openExternal(vscode.Uri.parse(releasesUrl));
+        } else if (selection === 'Installation Guide') {
+            // Both options point to releases since that's where the compiler is
+            vscode.env.openExternal(vscode.Uri.parse(releasesUrl));
         }
     });
 }
 
 /**
- * Show hover information for Flex language features
+ * Show first-time welcome prompt for Flex compiler installation
+ * @param {vscode.ExtensionContext} context Extension context for storing state
  */
-function provideHoverInfo(document, position, token) {
-    const wordRange = document.getWordRangeAtPosition(position);
-    if (!wordRange) {
-        return null;
-    }
-
-    const word = document.getText(wordRange);
+function showFirstTimeWelcomePrompt(context) {
+    const releasesUrl = 'https://github.com/Flex-Language/Flex/releases/';
+    const message = '🎉 Welcome to Flex Language Support! To run .lx files, you\'ll need the Flex compiler.';
     
-    // Keywords info with examples and explanations
-    const keywordInfo = {
-        // Control flow
-        'lw': {
-            description: 'Conditional statement (Arabic syntax for "if")',
-            example: 'lw x > 5 {\n  etb3("x is greater than 5")\n}',
-            explanation: 'Used to execute code only if a condition is true'
-        },
-        'aw': {
-            description: 'Alternative conditional (Arabic syntax for "else if")',
-            example: 'lw x > 5 {\n  etb3("x is greater than 5")\n} aw x == 5 {\n  etb3("x is equal to 5")\n}',
-            explanation: 'Used with lw to specify an alternative condition'
-        },
-        'gher': {
-            description: 'Alternative branch (Arabic syntax for "else")',
-            example: 'lw x > 5 {\n  etb3("x is greater than 5")\n} gher {\n  etb3("x is not greater than 5")\n}',
-            explanation: 'Used with lw to specify code to run when the condition is false'
-        },
-        'if': {
-            description: 'Conditional statement',
-            example: 'if x > 5 {\n  print("x is greater than 5")\n}',
-            explanation: 'English syntax version of lw'
-        },
-        'elif': {
-            description: 'Alternative conditional (short for "else if")',
-            example: 'if x > 5 {\n  print("x is greater than 5")\n} elif x == 5 {\n  print("x is equal to 5")\n}',
-            explanation: 'English syntax version of aw'
-        },
-        'else': {
-            description: 'Alternative branch',
-            example: 'if x > 5 {\n  print("x is greater than 5")\n} else {\n  print("x is not greater than 5")\n}',
-            explanation: 'English syntax version of gher'
-        },
-        'otherwise': {
-            description: 'Alternative branch (synonym for "else")',
-            example: 'if x > 5 {\n  print("x is greater than 5")\n} otherwise {\n  print("x is not greater than 5")\n}',
-            explanation: 'Alternative for "else"'
-        },
-        'talama': {
-            description: 'Loop while condition is true (Arabic syntax for "while")',
-            example: 'talama x < 10 {\n  etb3(x)\n  x = x + 1\n}',
-            explanation: 'Repeats a block of code while a condition is true'
-        },
-        'talma': {
-            description: 'Loop while condition is true (shortened Arabic syntax for "while")',
-            example: 'talma x < 10 {\n  etb3(x)\n  x = x + 1\n}',
-            explanation: 'Shortened version of talama'
-        },
-        'tlma': {
-            description: 'Loop while condition is true (shortened Arabic syntax for "while")',
-            example: 'tlma x < 10 {\n  etb3(x)\n  x = x + 1\n}',
-            explanation: 'Shortened version of talama'
-        },
-        'while': {
-            description: 'Loop while condition is true',
-            example: 'while x < 10 {\n  print(x)\n  x = x + 1\n}',
-            explanation: 'English syntax version of talama'
-        },
-        'loop': {
-            description: 'Loop while condition is true (synonym for "while")',
-            example: 'loop x < 10 {\n  print(x)\n  x = x + 1\n}',
-            explanation: 'Alternative for "while"'
-        },
-        'karr': {
-            description: 'Repeat loop (Arabic syntax for "for")',
-            example: 'karr i = 1 l7d 5 {\n  etb3(i)\n}',
-            explanation: 'Repeats a block of code for a range of values. Must include "l7d" to specify the upper limit.'
-        },
-        'l7d': {
-            description: 'Until (used in "karr" loops to specify upper limit)',
-            example: 'karr i = 1 l7d 5 {\n  etb3(i)\n}',
-            explanation: 'Used with "karr" to specify the upper limit of the loop'
-        },
-        'for': {
-            description: 'For loop',
-            example: 'for(i=0; i<5; i++) {\n  print(i)\n}',
-            explanation: 'English syntax for loops, similar to C-style'
-        },
-        'w2f': {
-            description: 'Exit a loop (Arabic syntax for "break")',
-            example: 'talama sa7 {\n  lw x > 10 {\n    w2f\n  }\n  x++\n}',
-            explanation: 'Immediately exits the current loop'
-        },
-        'break': {
-            description: 'Exit a loop',
-            example: 'while (true) {\n  if (x > 10) {\n    break\n  }\n  x++\n}',
-            explanation: 'English syntax version of w2f'
-        },
-        'stop': {
-            description: 'Exit a loop (synonym for "break")',
-            example: 'while (true) {\n  if (x > 10) {\n    stop\n  }\n  x++\n}',
-            explanation: 'Alternative for "break"'
-        },
-        'rg3': {
-            description: 'Return a value from a function (Arabic syntax for "return")',
-            example: 'sndo2 add(rakm a, rakm b) {\n  rg3 a + b\n}',
-            explanation: 'Exits a function and optionally returns a value'
-        },
-        'return': {
-            description: 'Return a value from a function',
-            example: 'fun add(rakm a, rakm b) {\n  return a + b\n}',
-            explanation: 'English syntax version of rg3'
-        },
-        'cond': {
-            description: 'Conditional statement (synonym for "if")',
-            example: 'cond x > 5 {\n  print("x is greater than 5")\n}',
-            explanation: 'Alternative for "if"'
-        },
-        
-        // Types
-        'rakm': {
-            description: 'Integer variable declaration (Arabic syntax for "int")',
-            example: 'rakm x = 10',
-            explanation: 'Declares a variable that can hold whole numbers'
-        },
-        'kasr': {
-            description: 'Floating-point variable declaration (Arabic syntax for "float")',
-            example: 'kasr pi = 3.14',
-            explanation: 'Declares a variable that can hold decimal numbers'
-        },
-        'so2al': {
-            description: 'Boolean variable declaration (Arabic syntax for "bool")',
-            example: 'so2al isActive = sa7',
-            explanation: 'Declares a variable that can hold boolean values (sa7/ghalt)'
-        },
-        'klma': {
-            description: 'String variable declaration (Arabic syntax for "string")',
-            example: 'klma message = "Hello, Flex!"',
-            explanation: 'Declares a variable that can hold text'
-        },
-        'dorg': {
-            description: 'List variable declaration (Arabic syntax for "list")',
-            example: 'dorg myList = [1, 2, 3]',
-            explanation: 'Declares a variable that can hold a list of values'
-        },
-        'int': {
-            description: 'Integer variable declaration',
-            example: 'int x = 10',
-            explanation: 'English syntax version of rakm'
-        },
-        'float': {
-            description: 'Floating-point variable declaration',
-            example: 'float pi = 3.14',
-            explanation: 'English syntax version of kasr'
-        },
-        'bool': {
-            description: 'Boolean variable declaration',
-            example: 'bool isActive = true',
-            explanation: 'English syntax version of so2al'
-        },
-        'string': {
-            description: 'String variable declaration',
-            example: 'string message = "Hello, Flex!"',
-            explanation: 'English syntax version of klma'
-        },
-        'list': {
-            description: 'List variable declaration',
-            example: 'list myList = [1, 2, 3]',
-            explanation: 'English syntax version of dorg'
-        },
-        
-        // Function declarations
-        'sndo2': {
-            description: 'Function declaration (Arabic syntax)',
-            example: 'sndo2 add(rakm a, rakm b) {\n  rg3 a + b\n}',
-            explanation: 'Defines a reusable block of code that can take parameters and return a value'
-        },
-        'sando2': {
-            description: 'Function declaration (alternate Arabic syntax)',
-            example: 'sando2 add(rakm a, rakm b) {\n  rg3 a + b\n}',
-            explanation: 'Alternative spelling of sndo2'
-        },
-        'fn': {
-            description: 'Function declaration (short for "function")',
-            example: 'fn add(rakm a, rakm b) {\n  return a + b\n}',
-            explanation: 'Short English syntax for function declaration'
-        },
-        'fun': {
-            description: 'Function declaration (short for "function")',
-            example: 'fun add(rakm a, rakm b) {\n  return a + b\n}',
-            explanation: 'English syntax for function declaration'
-        },
-        'function': {
-            description: 'Function declaration',
-            example: 'function add(rakm a, rakm b) {\n  return a + b\n}',
-            explanation: 'Full English syntax for function declaration'
-        },
-        
-        // I/O
-        'etb3': {
-            description: 'Output text or values (Arabic syntax for "print")',
-            example: 'etb3("Hello, {name}!")',
-            explanation: 'Displays text or values to the console, supports string interpolation using {}'
-        },
-        'out': {
-            description: 'Output text or values (synonym for "print")',
-            example: 'out("Hello, {name}!")',
-            explanation: 'Alternative for "print"'
-        },
-        'output': {
-            description: 'Output text or values (synonym for "print")',
-            example: 'output("Hello, {name}!")',
-            explanation: 'Alternative for "print"'
-        },
-        'print': {
-            description: 'Output text or values',
-            example: 'print("Hello, {name}!")',
-            explanation: 'English syntax version of etb3'
-        },
-        'printf': {
-            description: 'Output formatted text (similar to C\'s printf)',
-            example: 'printf("Hello, {name}!")',
-            explanation: 'Alternative for "print" with C-style naming'
-        },
-        'cout': {
-            description: 'Output text or values (similar to C++\'s cout)',
-            example: 'cout("Hello, {name}!")',
-            explanation: 'Alternative for "print" with C++-style naming'
-        },
-        'scan': {
-            description: 'Get input from user (synonym for "input")',
-            example: 'x = scan()',
-            explanation: 'Alternative for "input"'
-        },
-        'read': {
-            description: 'Get input from user (synonym for "input")',
-            example: 'x = read()',
-            explanation: 'Alternative for "input"'
-        },
-        'input': {
-            description: 'Get input from user',
-            example: 'name = input()',
-            explanation: 'English syntax version of da5l'
-        },
-        'da5l': {
-            description: 'Get input from user (Arabic syntax for "input")',
-            example: 'name = da5l()',
-            explanation: 'Gets input from the user and returns it as a string'
-        },
-        'da5al': {
-            description: 'Get input from user (alternate Arabic syntax for "input")',
-            example: 'name = da5al()',
-            explanation: 'Alternative spelling of da5l'
-        },
-        'd5l': {
-            description: 'Get input from user (shortened Arabic syntax for "input")',
-            example: 'name = d5l()',
-            explanation: 'Shortened version of da5l'
-        },
-        
-        // Import
-        'geep': {
-            description: 'Import statement (Arabic syntax)',
-            example: 'geep "math"',
-            explanation: 'Imports a module or library'
-        },
-        'geeb': {
-            description: 'Import statement (alternate Arabic syntax)',
-            example: 'geeb "math"',
-            explanation: 'Alternative spelling of geep'
-        },
-        'import': {
-            description: 'Import statement',
-            example: 'import "math"',
-            explanation: 'English syntax version of geep'
-        },
-        
-        // Boolean values
-        'sa7': {
-            description: 'Boolean true value (Arabic syntax)',
-            example: 'so2al isActive = sa7',
-            explanation: 'Represents the boolean value "true"'
-        },
-        'ghalt': {
-            description: 'Boolean false value (Arabic syntax)',
-            example: 'so2al isActive = ghalt',
-            explanation: 'Represents the boolean value "false"'
-        },
-        'true': {
-            description: 'Boolean true value',
-            example: 'bool isActive = true',
-            explanation: 'English syntax version of sa7'
-        },
-        'false': {
-            description: 'Boolean false value',
-            example: 'bool isActive = false',
-            explanation: 'English syntax version of ghalt'
-        },
-        'True': {
-            description: 'Boolean true value (Python-style)',
-            example: 'bool isActive = True',
-            explanation: 'Python-style capitalized version of true'
-        },
-        'False': {
-            description: 'Boolean false value (Python-style)',
-            example: 'bool isActive = False',
-            explanation: 'Python-style capitalized version of false'
-        },
-        
-        // List operations
-        'push': {
-            description: 'Add an item to the end of a list',
-            example: 'myList.push(42)',
-            explanation: 'Adds a new element to the end of a list'
-        },
-        'pop': {
-            description: 'Remove and return the last item from a list',
-            example: 'lastItem = myList.pop()',
-            explanation: 'Removes the last element from a list and returns it'
-        },
-        'remove': {
-            description: 'Remove a specific item from a list',
-            example: 'myList.remove(2)',
-            explanation: 'Removes the element at the specified index from a list'
-        },
-        'length': {
-            description: 'Get the number of items in a list',
-            example: 'size = length(myList)',
-            explanation: 'Returns the number of elements in a list'
+    vscode.window.showInformationMessage(
+        message, 
+        'Download Compiler',
+        'I Already Have It',
+        'Remind Me Later'
+    ).then(selection => {
+        if (selection === 'Download Compiler') {
+            vscode.env.openExternal(vscode.Uri.parse(releasesUrl));
+            // Still mark as prompted even if they download it now
+            context.globalState.update('hasPromptedForCompiler', true);
+        } else if (selection === 'I Already Have It') {
+            // User claims they have the compiler, mark as prompted
+            context.globalState.update('hasPromptedForCompiler', true);
+            // Offer to verify if their compiler installation works
+            verifyCompilerInstallation(context);
         }
-    };
-
-    // Operator info with examples and explanations
-    const operatorInfo = {
-        '+': {
-            description: 'Addition operator',
-            example: 'x = 5 + 3  # x becomes 8',
-            explanation: 'Adds two values together'
-        },
-        '-': {
-            description: 'Subtraction operator',
-            example: 'x = 5 - 3  # x becomes 2',
-            explanation: 'Subtracts the second value from the first'
-        },
-        '*': {
-            description: 'Multiplication operator',
-            example: 'x = 5 * 3  # x becomes 15',
-            explanation: 'Multiplies two values together'
-        },
-        '/': {
-            description: 'Division operator',
-            example: 'x = 6 / 3  # x becomes 2',
-            explanation: 'Divides the first value by the second'
-        },
-        '++': {
-            description: 'Increment operator (increase by 1)',
-            example: 'x++  # equivalent to x = x + 1',
-            explanation: 'Increases a variable\'s value by 1'
-        },
-        '--': {
-            description: 'Decrement operator (decrease by 1)',
-            example: 'x--  # equivalent to x = x - 1',
-            explanation: 'Decreases a variable\'s value by 1'
-        },
-        '==': {
-            description: 'Equality comparison operator',
-            example: 'lw x == 5 { etb3("x is 5") }',
-            explanation: 'Checks if two values are equal'
-        },
-        '!=': {
-            description: 'Inequality comparison operator',
-            example: 'lw x != 5 { etb3("x is not 5") }',
-            explanation: 'Checks if two values are not equal'
-        },
-        '>': {
-            description: 'Greater than comparison operator',
-            example: 'lw x > 5 { etb3("x is greater than 5") }',
-            explanation: 'Checks if the first value is greater than the second'
-        },
-        '<': {
-            description: 'Less than comparison operator',
-            example: 'lw x < 5 { etb3("x is less than 5") }',
-            explanation: 'Checks if the first value is less than the second'
-        },
-        '>=': {
-            description: 'Greater than or equal comparison operator',
-            example: 'lw x >= 5 { etb3("x is greater than or equal to 5") }',
-            explanation: 'Checks if the first value is greater than or equal to the second'
-        },
-        '<=': {
-            description: 'Less than or equal comparison operator',
-            example: 'lw x <= 5 { etb3("x is less than or equal to 5") }',
-            explanation: 'Checks if the first value is less than or equal to the second'
-        },
-        'and': {
-            description: 'Logical AND operator',
-            example: 'lw x > 5 and y < 10 { etb3("Both conditions are true") }',
-            explanation: 'Returns true only if both conditions are true'
-        },
-        'or': {
-            description: 'Logical OR operator',
-            example: 'lw x > 5 or y < 10 { etb3("At least one condition is true") }',
-            explanation: 'Returns true if at least one condition is true'
-        },
-        'not': {
-            description: 'Logical NOT operator',
-            example: 'lw not(x > 5) { etb3("x is not greater than 5") }',
-            explanation: 'Inverts a boolean value or condition'
-        }
-    };
-
-    // Function info with examples and explanations
-    const functionInfo = {
-        'absolute': {
-            description: 'Returns the absolute value of a number',
-            example: 'absolute(-5)  # Returns 5',
-            explanation: 'Calculates the absolute (positive) value of a number'
-        },
-        'do_modulus': {
-            description: 'Calculates the modulus (remainder) of a division',
-            example: 'do_modulus(10, 3)  # Returns 1',
-            explanation: 'Returns the remainder when dividing the first number by the second'
-        },
-        'add': {
-            description: 'Adds two numbers together',
-            example: 'add(5, 3)  # Returns 8',
-            explanation: 'Returns the sum of two numbers'
-        },
-        'sub': {
-            description: 'Subtracts the second number from the first',
-            example: 'sub(5, 3)  # Returns 2',
-            explanation: 'Returns the difference between two numbers'
-        },
-        'mul': {
-            description: 'Multiplies two numbers together',
-            example: 'mul(5, 3)  # Returns 15',
-            explanation: 'Returns the product of two numbers'
-        },
-        'div': {
-            description: 'Divides the first number by the second',
-            example: 'div(6, 3)  # Returns 2',
-            explanation: 'Returns the quotient of dividing the first number by the second'
-        },
-        'isprime': {
-            description: 'Checks if a number is prime',
-            example: 'isprime(17)  # Prints "17 is a prime number" and returns true',
-            explanation: 'Tests if a number is only divisible by 1 and itself'
-        },
-        'calculator': {
-            description: 'Performs arithmetic operations based on a string command',
-            example: 'calculator("add", 5, 3)  # Prints "result is 8"',
-            explanation: 'Executes the specified operation on two numbers'
-        },
-        'timetable': {
-            description: 'Prints a multiplication table for a number',
-            example: 'timetable(5)  # Prints multiplication table for 5',
-            explanation: 'Generates and displays the multiplication table for a given number'
-        }
-    };
-
-    if (keywordInfo[word]) {
-        const info = keywordInfo[word];
-        const markdown = new vscode.MarkdownString();
-        markdown.appendMarkdown(`**${word}**: ${info.description}\n\n`);
-        markdown.appendMarkdown(`**Example:**\n\`\`\`flex\n${info.example}\n\`\`\`\n\n`);
-        markdown.appendMarkdown(`**Explanation:** ${info.explanation}`);
-        return new vscode.Hover(markdown);
-    }
-    
-    if (operatorInfo[word]) {
-        const info = operatorInfo[word];
-        const markdown = new vscode.MarkdownString();
-        markdown.appendMarkdown(`**${word}**: ${info.description}\n\n`);
-        markdown.appendMarkdown(`**Example:**\n\`\`\`flex\n${info.example}\n\`\`\`\n\n`);
-        markdown.appendMarkdown(`**Explanation:** ${info.explanation}`);
-        return new vscode.Hover(markdown);
-    }
-    
-    if (functionInfo[word]) {
-        const info = functionInfo[word];
-        const markdown = new vscode.MarkdownString();
-        markdown.appendMarkdown(`**${word}**: ${info.description}\n\n`);
-        markdown.appendMarkdown(`**Example:**\n\`\`\`flex\n${info.example}\n\`\`\`\n\n`);
-        markdown.appendMarkdown(`**Explanation:** ${info.explanation}`);
-        return new vscode.Hover(markdown);
-    }
-    
-    return null;
+        // For 'Remind Me Later' we don't mark as prompted, so they'll see it again next time
+    });
 }
 
 /**
- * Provides function signature help
+ * Verify if the compiler installation works properly
+ * @param {vscode.ExtensionContext} context Extension context
  */
-function provideSignatureHelp(document, position, token) {
-    const lineText = document.lineAt(position.line).text;
-    const beforeCursor = lineText.substring(0, position.character);
+async function verifyCompilerInstallation(context) {
+    const compilerPath = await findFlexCompiler();
+    if (compilerPath) {
+        vscode.window.showInformationMessage('✅ Flex compiler found successfully! You\'re all set.');
+    } else {
+        vscode.window.showWarningMessage(
+            'Flex compiler not found in PATH. Would you like to download it now?',
+            'Download',
+            'Not Now'
+        ).then(selection => {
+            if (selection === 'Download') {
+                vscode.env.openExternal(vscode.Uri.parse('https://github.com/Flex-Language/Flex/releases/'));
+            }
+        });
+    }
+}
+
+/**
+ * Find the Flex compiler path
+ * @returns {Promise<string|null>} Path to the compiler if found, null otherwise
+ */
+async function findFlexCompiler() {
+    // First, check workspace or user settings for a configured path
+    const config = vscode.workspace.getConfiguration('flex');
+    const configuredPath = config.get('compilerPath');
     
-    // Check if we're inside function call parentheses
-    const functionCallMatch = beforeCursor.match(/([a-zA-Z0-9_]+)\s*\(/);
-    if (!functionCallMatch) {
-        return null;
+    if (configuredPath && configuredPath.trim() !== '') {
+        try {
+            if (fs.existsSync(configuredPath)) {
+                const isValid = await verifyCompilerOutput(configuredPath);
+                if (isValid) {
+                    console.log(`Using configured Flex compiler path: ${configuredPath}`);
+                    return configuredPath;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking configured compiler path:', error);
+        }
     }
     
-    const functionName = functionCallMatch[1];
-    
-    // Standard library functions and their signatures
-    const functionSignatures = {
-        'absolute': {
-            signature: 'absolute(rakm a)',
-            params: ['a: number to find absolute value of'],
-            description: 'Returns the absolute value of a number',
-            code: 'sando2 absolute(rakm a){\n  lw a < 0 {\n    x = a * (-1)\n    rg3 x\n  }\n  gher{ rg3 a}\n}',
-            example: 'etb3(absolute(-5))  # Outputs: 5',
-            returns: 'rakm'
-        },
-        'do_modulus': {
-            signature: 'do_modulus(rakm b, rakm c)',
-            params: ['b: dividend', 'c: divisor'],
-            description: 'Calculates the modulus (remainder) of b divided by c',
-            code: 'sando2 do_modulus(rakm b, rakm c) {\n  lw c == 0 { etb3("error: division by zero is not allowed")}\n\n  aba = absolute(b) \n  abb = absolute(c)\n\n  lw aba < abb { rg3 b}\n\n  talama aba >= abb {\n    aba = aba - abb\n  }\n\n  lw b < 0 {\n    x = aba * (-1)\n    rg3 x\n  }\n  gher { rg3 aba}\n}',
-            example: 'etb3(do_modulus(10, 3))  # Outputs: 1',
-            returns: 'rakm'
-        },
-        'add': {
-            signature: 'add(rakm a, rakm b)',
-            params: ['a: first number', 'b: second number'],
-            description: 'Adds two numbers together',
-            code: 'sndo2 add(rakm a, rakm b) {\n  rg3 a + b\n}',
-            example: 'etb3(add(3, 4))  # Outputs: 7',
-            returns: 'rakm'
-        },
-        'sub': {
-            signature: 'sub(rakm a, rakm b)',
-            params: ['a: number to subtract from', 'b: number to subtract'],
-            description: 'Subtracts b from a',
-            code: 'sando2 sub(rakm a, rakm b) {\n  rg3 a - b\n}',
-            example: 'etb3(sub(10, 4))  # Outputs: 6',
-            returns: 'rakm'
-        },
-        'mul': {
-            signature: 'mul(rakm a, rakm b)',
-            params: ['a: first number', 'b: second number'],
-            description: 'Multiplies two numbers',
-            code: 'sando2 mul(rakm a, rakm b) {\n  rg3 a * b\n}',
-            example: 'etb3(mul(3, 4))  # Outputs: 12',
-            returns: 'rakm'
-        },
-        'div': {
-            signature: 'div(rakm a, rakm b)',
-            params: ['a: dividend', 'b: divisor'],
-            description: 'Divides a by b',
-            code: 'sando2 div(rakm a, rakm b) {\n  lw b == 0 {\n    etb3("Error: Division by zero")\n    rg3 0\n  }\n  rg3 a / b\n}',
-            example: 'etb3(div(12, 4))  # Outputs: 3',
-            returns: 'kasr'
-        },
-        'isprime': {
-            signature: 'isprime(rakm num)',
-            params: ['num: number to check'],
-            description: 'Checks if a number is prime',
-            code: 'sndo2 isprime(rakm num) {\n  rakm pos = absolute(num)\n\n  # Handle numbers <= 1\n  lw num <= 1 {\n    etb3("{num} is not a prime number")\n    rg3 false \n  }\n\n  rakm i = 2\n  rakm mul = i * i  # Initialize mul outside the loop\n\n  # Loop to check for divisibility\n  talama mul <= num {\n    lw do_modulus(pos, i) == 0 {\n      etb3("{num} is not a prime number")\n      rg3 false \n    }\n    i = i + 1\n    mul = i * i  # Update mul inside the loop\n  }\n\n  # If no divisor was found, it\'s a prime number\n  etb3("{num} is a prime number")\n  rg3 true\n}',
-            example: 'isprime(17)  # Outputs: 17 is a prime number',
-            returns: 'so2al'
-        },
-        'calculator': {
-            signature: 'calculator(klma x, rakm a, rakm b)',
-            params: ['x: operation ("add", "sub", "mul", "div")', 'a: first number', 'b: second number'],
-            description: 'Performs basic arithmetic operations',
-            code: 'sando2 calculator(klma x, rakm a, rakm b) { \n  lw x == "add" {\n    y= a + b \n    etb3("result is {y}")\n  }\n  aw x == "sub" {\n    y= a - b \n    etb3("result is {y}")\n  }\n  aw x == "mul" {\n    y= a * b \n    etb3("result is {y}")\n  }\n  aw x == "div" {\n    y= a / b \n    etb3("result is {y}")\n  }\n  gher {etb3("error it is not in the options {x}")}\n}',
-            example: 'calculator("add", 5, 3)  # Outputs: result is 8',
-            returns: 'void'
-        },
-        'timetable': {
-            signature: 'timetable(rakm num)',
-            params: ['num: number to generate a multiplication table for'],
-            description: 'Prints the multiplication table for a number',
-            code: 'fn timetable(rakm num){\n  i = 1\n  karr x=1 l7d 10 {\n    mul = num * i\n    i = i + 1\n    etb3("{num} * {i-1} = {mul}")\n  }\n}',
-            example: 'timetable(5)  # Outputs multiplication table for 5',
-            returns: 'void'
-        },
-        'etb3': {
-            signature: 'etb3(message)',
-            params: ['message: text to output'],
-            description: 'Outputs text or values to the console',
-            example: 'etb3("Hello, {name}")  # Outputs: Hello, followed by the value of name',
-            returns: 'void'
-        },
-        'print': {
-            signature: 'print(message)',
-            params: ['message: text to output'],
-            description: 'Outputs text or values to the console',
-            example: 'print("Hello, {name}")  # Outputs: Hello, followed by the value of name',
-            returns: 'void'
-        },
-        'da5l': {
-            signature: 'da5l()',
-            params: [],
-            description: 'Gets input from the user',
-            example: 'name = da5l()  # Reads user input and assigns it to name',
-            returns: 'user input as string'
-        },
-        'input': {
-            signature: 'input()',
-            params: [],
-            description: 'Gets input from the user',
-            example: 'name = input()  # Reads user input and assigns it to name',
-            returns: 'user input as string'
-        },
-        'length': {
-            signature: 'length(dorg list)',
-            params: ['list: the list to get the length of'],
-            description: 'Returns the number of items in a list',
-            example: 'etb3(length(myList))  # Outputs: number of items in myList',
-            returns: 'rakm'
+    // Try the 'flex' command - this is the only valid command for Flex
+    try {
+        const isValid = await verifyCompilerOutput('flex');
+        if (isValid) {
+            console.log(`Found Flex compiler in PATH as 'flex'`);
+            return 'flex';
         }
+    } catch (error) {
+        console.log('Flex compiler not found in PATH');
+    }
+
+    // If we reach here, try OS-specific paths
+    const paths = getOSSpecificPaths();
+    for (const flexPath of paths) {
+        try {
+            if (fs.existsSync(flexPath)) {
+                const isValid = await verifyCompilerOutput(flexPath);
+                if (isValid) {
+                    console.log(`Found Flex compiler at: ${flexPath}`);
+                    return flexPath;
+                }
+            }
+        } catch (error) {
+            continue;
+        }
+    }
+    
+    console.log('Flex compiler not found in any location');
+    return null;
+}
+
+// Add diagnostic collection for error highlighting
+let diagnosticCollection;
+
+/**
+ * Check for balanced braces in the entire document
+ * @param {string[]} lines Array of text lines
+ * @returns {vscode.Diagnostic[]} Array of diagnostics for unbalanced braces
+ */
+function checkBracesBalance(lines) {
+    const diagnostics = [];
+    const stack = [];
+    
+    // Map to keep track of opening brace positions
+    const openingPositions = {
+        '{': [],
+        '(': [],
+        '[': []
     };
     
-    if (functionSignatures[functionName]) {
-        const info = functionSignatures[functionName];
+    // Track state across multiple lines
+    let inComment = false;
+    let inString = false;
+    let inTripleQuote = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         
-        let documentation = new vscode.MarkdownString();
-        documentation.appendMarkdown(`**${info.description}**\n\n`);
-        
-        if (info.returns) {
-            documentation.appendMarkdown(`**Returns:** ${info.returns}\n\n`);
+        for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            const prevChar = j > 0 ? line[j - 1] : '';
+            
+            // Handle triple-quoted strings
+            if (j + 2 < line.length && char === "'" && line[j+1] === "'" && line[j+2] === "'") {
+                inTripleQuote = !inTripleQuote;
+                j += 2; // Skip the next two quotes
+                continue;
+            }
+            
+            // Skip everything inside triple quotes
+            if (inTripleQuote) {
+                continue;
+            }
+            
+            // Skip characters in regular strings
+            if (char === '"' && prevChar !== '\\') {
+                inString = !inString;
+                continue;
+            }
+            
+            if (!inString) {
+                if (char === '/' && j + 1 < line.length && line[j + 1] === '/') {
+                    // Line comment, skip rest of line
+                    break;
+                }
+                
+                if (char === '#') {
+                    // Another line comment style, skip rest of line
+                    break;
+                }
+                
+                if (char === '/' && j + 1 < line.length && line[j + 1] === '*') {
+                    inComment = true;
+                    j++; // Skip '*'
+                    continue;
+                }
+                
+                if (inComment && char === '*' && j + 1 < line.length && line[j + 1] === '/') {
+                    inComment = false;
+                    j++; // Skip '/'
+                    continue;
+                }
+            }
+            
+            if (inComment || inString) {
+                continue;
+            }
+            
+            // Check braces
+            if (char === '{' || char === '(' || char === '[') {
+                stack.push(char);
+                // Record position
+                if (!openingPositions[char]) {
+                    openingPositions[char] = [];
+                }
+                openingPositions[char].push({ line: i, col: j });
+            } else if (char === '}' || char === ')' || char === ']') {
+                const matchingOpening = char === '}' ? '{' : (char === ')' ? '(' : '[');
+                
+                if (stack.length === 0 || stack[stack.length - 1] !== matchingOpening) {
+                    // Unmatched closing brace
+                    diagnostics.push(
+                        new vscode.Diagnostic(
+                            new vscode.Range(i, j, i, j + 1),
+                            `Unmatched closing ${char}`,
+                            vscode.DiagnosticSeverity.Error
+                        )
+                    );
+                } else {
+                    stack.pop();
+                    // Remove the matched opening position
+                    if (openingPositions[matchingOpening] && openingPositions[matchingOpening].length > 0) {
+                        openingPositions[matchingOpening].pop();
+                    }
+                }
+            }
         }
-        
-        if (info.example) {
-            documentation.appendMarkdown(`**Example:**\n\`\`\`flex\n${info.example}\n\`\`\`\n\n`);
-        }
-        
-        if (info.code) {
-            documentation.appendMarkdown(`**Implementation:**\n\`\`\`flex\n${info.code}\n\`\`\`\n\n`);
-        }
-        
-        const signatureInformation = new vscode.SignatureInformation(
-            info.signature,
-            documentation
-        );
-        
-        info.params.forEach(paramDesc => {
-            signatureInformation.parameters.push(
-                new vscode.ParameterInformation(paramDesc.split(':')[0], paramDesc)
+    }
+    
+    // Any remaining braces on the stack are unmatched opening braces
+    for (const brace in openingPositions) {
+        for (const pos of openingPositions[brace]) {
+            diagnostics.push(
+                new vscode.Diagnostic(
+                    new vscode.Range(pos.line, pos.col, pos.line, pos.col + 1),
+                    `Unmatched opening ${brace}`,
+                    vscode.DiagnosticSeverity.Error
+                )
             );
-        });
-        
-        const signatureHelp = new vscode.SignatureHelp();
-        signatureHelp.signatures = [signatureInformation];
-        signatureHelp.activeSignature = 0;
-        
-        // Calculate active parameter based on commas
-        if (info.params.length > 0) {
-            let commaCount = 0;
-            let inString = false;
-            let stringChar = '';
-            
-            for (let i = 0; i < beforeCursor.length; i++) {
-                const char = beforeCursor[i];
-                
-                if ((char === '"' || char === "'") && (i === 0 || beforeCursor[i-1] !== '\\')) {
-                    if (!inString) {
-                        inString = true;
-                        stringChar = char;
-                    } else if (char === stringChar) {
-                        inString = false;
-                    }
-                }
-                
-                if (char === ',' && !inString) {
-                    commaCount++;
-                }
-            }
-            
-            signatureHelp.activeParameter = Math.min(commaCount, info.params.length - 1);
         }
-        
-        return signatureHelp;
     }
     
-    return null;
+    return diagnostics;
 }
 
+/**
+ * Parse Flex file and provide diagnostics
+ * @param {vscode.TextDocument} document 
+ */
+async function provideDiagnostics(document) {
+    if (!diagnosticCollection) {
+        return;
+    }
+    
+    if (document.languageId !== 'flex') {
+        return;
+    }
+    
+    const diagnostics = [];
+    const text = document.getText();
+    const lines = text.split('\n');
+    
+    // Check for braces balance in the entire document
+    const braceDiagnostics = checkBracesBalance(lines);
+    diagnostics.push(...braceDiagnostics);
+    
+    // Simple regex-based error detection - will be expanded with more sophisticated parsing
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Skip comments
+        if (line.startsWith('//') || line.startsWith('#') || line.startsWith('/*') || line.startsWith("'''")) {
+            continue;
+        }
+        
+        // Check for unclosed string literals
+        const stringQuotes = line.match(/"/g);
+        if (stringQuotes && stringQuotes.length % 2 !== 0) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, 0, i, line.length),
+                'Unclosed string literal',
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for semicolons (Flex doesn't use semicolons)
+        if (line.endsWith(';')) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, line.length - 1, i, line.length),
+                'Semicolons are not required in Flex',
+                vscode.DiagnosticSeverity.Information
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for potentially incorrect variable declarations
+        const variableDeclarations = line.match(/\b(int|float|string|bool|rakm|kasr|klma|so2al|dorg|list)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+        if (variableDeclarations) {
+            const type = variableDeclarations[1];
+            const varName = variableDeclarations[2];
+            const value = variableDeclarations[3];
+            
+            // Type-specific validation
+            if (type === 'int' || type === 'rakm') {
+                if (value.includes('.') && !value.includes('parseInt') && !value.includes('Math.floor')) {
+                    const diagnostic = new vscode.Diagnostic(
+                        new vscode.Range(i, line.indexOf(value), i, line.indexOf(value) + value.length),
+                        'Possible implicit float to integer conversion',
+                        vscode.DiagnosticSeverity.Warning
+                    );
+                    diagnostics.push(diagnostic);
+                }
+            }
+            
+            if ((type === 'bool' || type === 'so2al') && 
+                !(value.includes('true') || value.includes('false') || value.includes('sa7') || value.includes('ghalt') || 
+                  value.includes('==') || value.includes('!=') || value.includes('<') || value.includes('>'))) {
+                const diagnostic = new vscode.Diagnostic(
+                    new vscode.Range(i, line.indexOf(value), i, line.indexOf(value) + value.length),
+                    'Non-boolean value assigned to boolean variable',
+                    vscode.DiagnosticSeverity.Warning
+                );
+                diagnostics.push(diagnostic);
+            }
+            
+            // Check for incorrect boolean values in Arabic syntax
+            if ((type === 'bool' || type === 'so2al') && 
+                (value.includes('true') || value.includes('false')) && 
+                !(value.includes('sa7') || value.includes('ghalt'))) {
+                const diagnostic = new vscode.Diagnostic(
+                    new vscode.Range(i, line.indexOf(value), i, line.indexOf(value) + value.length),
+                    "Consider using 'sa7' or 'ghalt' for boolean values in Arabic syntax",
+                    vscode.DiagnosticSeverity.Information
+                );
+                diagnostics.push(diagnostic);
+            }
+        }
+        
+        // Check for undeclared variables (basic implementation, would need symbol tracking for accuracy)
+        const assignmentWithoutDeclaration = line.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+        if (assignmentWithoutDeclaration && 
+            !line.match(/\b(int|float|string|bool|rakm|kasr|klma|so2al|dorg|list)\s+/) && 
+            !line.includes('var ') && !line.includes('let ')) {
+            // This is a very simplistic check and will produce false positives
+            // A real implementation would track symbols/scope
+            const varName = assignmentWithoutDeclaration[1];
+            
+            // Flex allows implicit variable declarations, so we shouldn't flag simple assignments
+            // Only report the warning for more complex scenarios or if configured to be strict
+            const config = vscode.workspace.getConfiguration('flex');
+            const strictMode = config.get('strictVariableDeclarations', false);
+            
+            // Add this setting to package.json if it doesn't exist
+            if (strictMode && !['i', 'j', 'k', 'x', 'y', 'z', 'temp', 'index', 'sum', 'count', 'result'].includes(varName)) {
+                const diagnostic = new vscode.Diagnostic(
+                    new vscode.Range(i, line.indexOf(varName), i, line.indexOf(varName) + varName.length),
+                    'Variable possibly used without declaration',
+                    vscode.DiagnosticSeverity.Information
+                );
+                diagnostics.push(diagnostic);
+            }
+        }
+        
+        // Check for incorrect Arabic loop syntax
+        const wrongArabicLoop = line.match(/\bkarr\s*\(/);
+        if (wrongArabicLoop) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, line.indexOf('karr'), i, line.indexOf('(') + 1),
+                "Arabic loop should use 'karr i=0 l7d 10' syntax, not C-style 'karr (i=0; i<10; i++)'",
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for missing l7d in karr loops
+        const missingL7d = line.match(/\bkarr\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\d+\s+(\d+)/);
+        if (missingL7d) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, 0, i, line.length),
+                "Missing 'l7d' in Arabic for loop. Use 'karr i=0 l7d 10'",
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for using da5l without assignment
+        const da5lWithoutAssignment = line.match(/^da5l\(.*\)$/);
+        if (da5lWithoutAssignment) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, 0, i, line.length),
+                "Input function 'da5l()' must be assigned to a variable",
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for parameters in da5l
+        const da5lWithParams = line.match(/da5l\(([^)]+)\)/);
+        if (da5lWithParams && da5lWithParams[1].trim() !== '') {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, line.indexOf('da5l('), i, line.indexOf(')') + 1),
+                "Input function 'da5l()' doesn't accept parameters. Use etb3() for prompts",
+                vscode.DiagnosticSeverity.Error
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for incorrect logical operators
+        const incorrectLogicalOps = line.match(/(\&\&|\|\|)/);
+        if (incorrectLogicalOps) {
+            const diagnostic = new vscode.Diagnostic(
+                new vscode.Range(i, line.indexOf(incorrectLogicalOps[1]), i, line.indexOf(incorrectLogicalOps[1]) + incorrectLogicalOps[1].length),
+                "Use 'and' or 'or' for logical operators, not '&&' or '||'",
+                vscode.DiagnosticSeverity.Warning
+            );
+            diagnostics.push(diagnostic);
+        }
+        
+        // Check for missing parentheses in function calls
+        const functionCallsWithoutParens = line.match(/\b(etb3|print|out|output|printf|cout|scan|read|input|da5l|da5al|d5l)\s+(?!\()/);
+        if (functionCallsWithoutParens) {
+            // Make sure we're not detecting a function that actually has parentheses
+            const fullLine = line.trim();
+            const funcName = functionCallsWithoutParens[1];
+            const funcPattern = new RegExp(`\\b${funcName}\\s*\\(`);
+            
+            // Check if we're in a string context
+            const lineBeforeMatch = line.substring(0, line.indexOf(functionCallsWithoutParens[1]));
+            const quotesBeforeMatch = (lineBeforeMatch.match(/"/g) || []).length;
+            const isInString = quotesBeforeMatch % 2 !== 0;
+            
+            // Only report the error if:
+            // 1. The function is not followed by parentheses anywhere in the line
+            // 2. We're not inside a string
+            // 3. The function name is not part of another word (like "printing")
+            if (!funcPattern.test(fullLine) && !isInString && 
+                // Check the character after the function name+whitespace to ensure it's not part of another word
+                /\s+[^a-zA-Z0-9_]/.test(line.substring(line.indexOf(functionCallsWithoutParens[0]) + functionCallsWithoutParens[0].length))) {
+                
+                const diagnostic = new vscode.Diagnostic(
+                    new vscode.Range(i, line.indexOf(functionCallsWithoutParens[1]), i, line.indexOf(functionCallsWithoutParens[1]) + functionCallsWithoutParens[1].length),
+                    "Function calls require parentheses",
+                    vscode.DiagnosticSeverity.Error
+                );
+                diagnostics.push(diagnostic);
+            }
+        }
+    }
+    
+    // If we have the Flex compiler, try to use it for real error checking
+    const compilerPath = await findFlexCompiler();
+    if (compilerPath) {
+        try {
+            // Save the document to a temporary file
+            const tempFilePath = path.join(os.tmpdir(), `flex-${Date.now()}.lx`);
+            fs.writeFileSync(tempFilePath, text);
+            
+            // Run the compiler with a check-only flag, if it supports one
+            try {
+                const { stderr } = await execAsync(`"${compilerPath}" --check "${tempFilePath}"`, { timeout: 5000 });
+                
+                // Parse compiler errors - this regex will need to be adjusted based on the actual error format
+                const errorRegex = /line (\d+)(?:, col (\d+))?: (.+)/g;
+                let match;
+                while ((match = errorRegex.exec(stderr)) !== null) {
+                    const lineNum = parseInt(match[1], 10) - 1; // Convert to 0-based
+                    const colNum = match[2] ? parseInt(match[2], 10) - 1 : 0; // Convert to 0-based
+                    const message = match[3];
+                    
+                    if (lineNum >= 0 && lineNum < lines.length) {
+                        const diagnostic = new vscode.Diagnostic(
+                            new vscode.Range(lineNum, colNum, lineNum, lines[lineNum].length),
+                            message,
+                            vscode.DiagnosticSeverity.Error
+                        );
+                        diagnostics.push(diagnostic);
+                    }
+                }
+            } catch (execError) {
+                // If the command failed, try parsing stderr for error messages
+                if (execError.stderr) {
+                    const errorRegex = /line (\d+)(?:, col (\d+))?: (.+)/g;
+                    let match;
+                    while ((match = errorRegex.exec(execError.stderr)) !== null) {
+                        const lineNum = parseInt(match[1], 10) - 1;
+                        const colNum = match[2] ? parseInt(match[2], 10) - 1 : 0;
+                        const message = match[3];
+                        
+                        if (lineNum >= 0 && lineNum < lines.length) {
+                            const diagnostic = new vscode.Diagnostic(
+                                new vscode.Range(lineNum, colNum, lineNum, lines[lineNum].length),
+                                message,
+                                vscode.DiagnosticSeverity.Error
+                            );
+                            diagnostics.push(diagnostic);
+                        }
+                    }
+                }
+            }
+            
+            // Clean up temp file
+            try {
+                fs.unlinkSync(tempFilePath);
+            } catch (unlinkError) {
+                console.error('Error removing temp file:', unlinkError);
+            }
+        } catch (error) {
+            console.error('Error running Flex compiler for diagnostics:', error);
+        }
+    }
+    
+    // Update diagnostics
+    diagnosticCollection.set(document.uri, diagnostics);
+}
+
+/**
+ * @param {vscode.ExtensionContext} context
+ */
 function activate(context) {
-    console.log('Flex Language Support is now active!');
+    console.log('Flex Language Support is now active');
 
-    // Check for Flex interpreter on activation
-    checkFlexInstalled().then(isInstalled => {
-        if (!isInstalled) {
-            showFlexDownloadPrompt();
-        }
-    });
-
-    // Register the run command
-    let runCommand = vscode.commands.registerCommand('flex.runFile', async function () {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active editor found');
-            return;
-        }
-
-        const document = editor.document;
-        if (document.languageId !== 'flex') {
-            vscode.window.showErrorMessage('This is not a Flex file');
-            return;
-        }
-
-        // Check if Flex interpreter is installed before running
-        const isFlexInstalled = await checkFlexInstalled();
-        if (!isFlexInstalled) {
-            showFlexDownloadPrompt();
-            return;
-        }
-
-        // Save the file before running
-        document.save().then(() => {
-            const filePath = document.uri.fsPath;
-            const terminal = vscode.window.createTerminal('Flex Run');
-            terminal.show();
-            
-            // Run the file with the Flex interpreter
-            terminal.sendText(`flex "${filePath}"`);
-        });
-    });
-
-    // Register a status bar item for the run button
-    const runButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    runButton.text = "$(play) Run Flex";
-    runButton.command = 'flex.runFile';
-    runButton.tooltip = 'Run the current Flex file';
+    // Create diagnostic collection
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('flex');
+    context.subscriptions.push(diagnosticCollection);
     
-    // Show the run button only when a Flex file is active
-    function updateRunButtonVisibility() {
-        const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document.languageId === 'flex') {
-            runButton.show();
-        } else {
-            runButton.hide();
-        }
-    }
-
-    // Update button visibility when changing editors
-    vscode.window.onDidChangeActiveTextEditor(updateRunButtonVisibility);
-    
-    // Initial update
-    updateRunButtonVisibility();
-
-    // Register hover provider for Flex files
+    // Register hover provider for built-in functions and keywords
     const hoverProvider = vscode.languages.registerHoverProvider('flex', {
-        provideHover: provideHoverInfo
-    });
-
-    // Register signature help provider for Flex files
-    const signatureHelpProvider = vscode.languages.registerSignatureHelpProvider(
-        'flex',
-        {
-            provideSignatureHelp: provideSignatureHelp
-        },
-        '(', ',', ' '
-    );
-
-    // Register a completion item provider for Flex files
-    let provider = vscode.languages.registerCompletionItemProvider('flex', {
-        provideCompletionItems(document, position) {
-            // Control flow keywords
-            const controlFlow = [
-                'lw', 'aw', 'gher', 'if', 'elif', 'else', 'otherwise',
-                'talama', 'talma', 'tlma', 'while', 'loop',
-                'karr', 'l7d', 'for', 'w2f', 'break', 'stop',
-                'rg3', 'return', 'cond'
-            ];
+        provideHover(document, position, token) {
+            const wordRange = document.getWordRangeAtPosition(position);
+            if (!wordRange) return null;
             
-            // Type keywords
-            const types = [
-                'rakm', 'kasr', 'so2al', 'klma', 'dorg',
-                'int', 'float', 'bool', 'string', 'list'
-            ];
+            const word = document.getText(wordRange);
             
-            // Function declarations
-            const functionDeclarations = [
-                'sndo2', 'sando2', 'fn', 'fun', 'function'
-            ];
+            // Check if this is a function
+            if (builtInFunctions[word]) {
+                return new vscode.Hover(builtInFunctions[word]);
+            }
             
-            // I/O operations
-            const ioOperations = [
-                'etb3', 'out', 'output', 'print', 'printf', 'cout',
-                'scan', 'read', 'input', 'da5l', 'da5al', 'd5l'
-            ];
+            // Check if this is a keyword
+            if (languageKeywords[word]) {
+                return new vscode.Hover(languageKeywords[word]);
+            }
             
-            // Import statements
-            const importStatements = [
-                'geep', 'geeb', 'import'
-            ];
-            
-            // Boolean values
-            const booleanValues = [
-                'sa7', 'ghalt', 'true', 'false', 'True', 'False'
-            ];
-            
-            // List operations
-            const listOperations = [
-                'push', 'pop', 'remove', 'length'
-            ];
-
-            // Operators
-            const operators = [
-                '+', '-', '*', '/', '++', '--', 
-                '==', '!=', '>', '<', '>=', '<=',
-                'and', 'or', 'not'
-            ];
-
-            // Built-in functions
-            const builtinFunctions = [
-                'absolute', 'do_modulus', 'add', 'sub', 'mul', 'div', 
-                'isprime', 'calculator', 'timetable'
-            ];
-
-            // Combine all keywords
-            const keywords = [
-                ...controlFlow,
-                ...types,
-                ...functionDeclarations,
-                ...ioOperations,
-                ...importStatements,
-                ...booleanValues
-            ];
-
-            // Convert keywords to completion items
-            const keywordItems = keywords.map(keyword => {
-                const item = new vscode.CompletionItem(keyword, vscode.CompletionItemKind.Keyword);
-                return item;
-            });
-
-            // Convert list operations to completion items
-            const listOpItems = listOperations.map(op => {
-                const item = new vscode.CompletionItem(op, vscode.CompletionItemKind.Method);
-                item.insertText = `.${op}`;
-                return item;
-            });
-
-            // Convert operators to completion items
-            const operatorItems = operators.map(op => {
-                return new vscode.CompletionItem(op, vscode.CompletionItemKind.Operator);
-            });
-
-            // Convert built-in functions to completion items
-            const functionItems = builtinFunctions.map(func => {
-                const item = new vscode.CompletionItem(func, vscode.CompletionItemKind.Function);
-                return item;
-            });
-
-            // Add snippets for common patterns
-            const snippets = [
-                // If statement
-                {
-                    label: 'if-block',
-                    insertText: new vscode.SnippetString('lw ${1:condition} {\n\t${2}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'If statement'
-                },
-                // If-else statement
-                {
-                    label: 'if-else-block',
-                    insertText: new vscode.SnippetString('lw ${1:condition} {\n\t${2}\n} gher {\n\t${3}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'If-else statement'
-                },
-                // If-elif-else statement
-                {
-                    label: 'if-elif-else-block',
-                    insertText: new vscode.SnippetString('lw ${1:condition1} {\n\t${2}\n} aw ${3:condition2} {\n\t${4}\n} gher {\n\t${5}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'If-elif-else statement'
-                },
-                // While loop
-                {
-                    label: 'while-loop',
-                    insertText: new vscode.SnippetString('talama ${1:condition} {\n\t${2}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'While loop'
-                },
-                // For loop (Arabic style)
-                {
-                    label: 'for-loop-arabic',
-                    insertText: new vscode.SnippetString('karr ${1:i}=${2:start} l7d ${3:end} {\n\t${4}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'For loop (Arabic style)'
-                },
-                // For loop (C style)
-                {
-                    label: 'for-loop-c',
-                    insertText: new vscode.SnippetString('for(${1:i}=0; ${1:i}<${2:max}; ${1:i}++) {\n\t${3}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'For loop (C style)'
-                },
-                // Function definition (Arabic)
-                {
-                    label: 'function-arabic',
-                    insertText: new vscode.SnippetString('sndo2 ${1:name}(${2:params}) {\n\t${3}\n\trg3 ${4:result}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Function definition (Arabic)'
-                },
-                // Function definition (English)
-                {
-                    label: 'function-english',
-                    insertText: new vscode.SnippetString('fun ${1:name}(${2:params}) {\n\t${3}\n\treturn ${4:result}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Function definition (English)'
-                },
-                // Print statement
-                {
-                    label: 'print',
-                    insertText: new vscode.SnippetString('etb3("${1:message}")'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Print statement'
-                },
-                // Print with variable interpolation
-                {
-                    label: 'print-interpolation',
-                    insertText: new vscode.SnippetString('etb3("${1:message} {${2:variable}}")'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Print with variable interpolation'
-                },
-                // Input with prompt
-                {
-                    label: 'input-with-prompt',
-                    insertText: new vscode.SnippetString('etb3("${1:Enter a value:}")\n${2:variable} = da5l()'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Input with prompt'
-                },
-                // List declaration
-                {
-                    label: 'list-declaration',
-                    insertText: new vscode.SnippetString('dorg ${1:listName} = [${2:values}]'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'List declaration'
-                },
-                // Variable declarations (all types)
-                {
-                    label: 'var-declarations',
-                    insertText: new vscode.SnippetString('rakm ${1:intVar} = ${2:0}\nkasr ${3:floatVar} = ${4:0.0}\nso2al ${5:boolVar} = ${6:sa7}\nklma ${7:strVar} = "${8:text}"\ndorg ${9:listVar} = [${10:items}]'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Variable declarations (all types)'
-                },
-                // Simple calculator program
-                {
-                    label: 'calculator-program',
-                    insertText: new vscode.SnippetString('etb3("Enter an operator (add,sub,mul,div):")\nklma op = da5l()\n\netb3("Enter two numbers:")\nrakm a = da5l()\nrakm b = da5l()\n\nlw op == "add" {\n\tresult = a + b\n\tetb3("{a} + {b} = {result}")\n} aw op == "sub" {\n\tresult = a - b\n\tetb3("{a} - {b} = {result}")\n} aw op == "mul" {\n\tresult = a * b\n\tetb3("{a} * {b} = {result}")\n} aw op == "div" {\n\tlw b != 0 {\n\t\tresult = a / b\n\t\tetb3("{a} / {b} = {result}")\n\t} gher {\n\t\tetb3("Cannot divide by zero")\n\t}\n} gher {\n\tetb3("Invalid operator")\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Simple calculator program'
-                },
-                // Fibonacci series
-                {
-                    label: 'fibonacci-series',
-                    insertText: new vscode.SnippetString('t1 = 0\nt2 = 1\netb3("Fibonacci series")\netb3("Enter the number of terms:")\nrakm x = da5l()\netb3("the series: {t1}, {t2}")\n\nfor (i=3; i<=x; i++) {\n\tnext = t1 + t2\n\tetb3(", {next}")\n\tt1 = t2\n\tt2 = next\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Generate Fibonacci series'
-                },
-                // Temperature converter
-                {
-                    label: 'temperature-converter',
-                    insertText: new vscode.SnippetString('etb3("Enter temperature in Fahrenheit:")\nkasr fahrenheit = da5l()\nkasr celsius = (fahrenheit - 32) * 5 / 9\netb3("{fahrenheit}°F = {celsius}°C")'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Convert temperature from Fahrenheit to Celsius'
-                },
-                // Find the largest number
-                {
-                    label: 'find-largest',
-                    insertText: new vscode.SnippetString('etb3("Enter three different numbers:")\nx = da5l()\ny = da5l()\nz = da5l()\n\nlw x >= y {\n\tlw x >= z {\n\t\tetb3("{x} is the largest number")\n\t}\n}\n\nlw y >= x {\n\tlw y >= z {\n\t\tetb3("{y} is the largest number")\n\t}\n}\n\nlw z >= y {\n\tlw z >= x {\n\t\tetb3("{z} is the largest number")\n\t}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Find the largest of three numbers'
-                },
-                // Number guessing game
-                {
-                    label: 'guessing-game',
-                    insertText: new vscode.SnippetString('# Number guessing game\nrakm secret = 42  # Secret number to guess\nrakm attempts = 0\nso2al found = ghalt\n\netb3("Welcome to the Number Guessing Game!")\netb3("I\'m thinking of a number between 1 and 100.")\n\ntalama found == ghalt {\n\tetb3("Enter your guess:")\n\trakm guess = da5l()\n\tattempts++\n\t\n\tlw guess < secret {\n\t\tetb3("Too low! Try again.")\n\t} aw guess > secret {\n\t\tetb3("Too high! Try again.")\n\t} gher {\n\t\tfound = sa7\n\t\tetb3("Congratulations! You guessed the number in {attempts} attempts!")\n\t}\n\t\n\tlw attempts >= 10 and found == ghalt {\n\t\tetb3("You\'ve reached the maximum number of attempts.")\n\t\tetb3("The secret number was {secret}.")\n\t\tw2f\n\t}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Number guessing game'
-                },
-                // Todo list application
-                {
-                    label: 'todo-app',
-                    insertText: new vscode.SnippetString('# Todo List Application\ndorg todos = []\n\nsndo2 showMenu() {\n\tetb3("\\nTodo List Application")\n\tetb3("--------------------")\n\tetb3("1. Add todo")\n\tetb3("2. Remove todo")\n\tetb3("3. List todos")\n\tetb3("4. Exit")\n\tetb3("Enter your choice:")\n\trakm choice = da5l()\n\trg3 choice\n}\n\nsndo2 addTodo() {\n\tetb3("Enter a new todo:")\n\tklma todo = da5l()\n\ttodos.push(todo)\n\tetb3("Todo added successfully!")\n}\n\nsndo2 removeTodo() {\n\tlw todos.length == 0 {\n\t\tetb3("No todos to remove!")\n\t\trg3 ghalt\n\t}\n\t\n\tetb3("Current todos:")\n\tfor (i = 0; i < todos.length; i++) {\n\t\tetb3("{i+1}. {todos[i]}")\n\t}\n\t\n\tetb3("Enter the number of the todo to remove:")\n\trakm index = da5l()\n\t\n\tlw index >= 1 and index <= todos.length {\n\t\ttodos.remove(index - 1)\n\t\tetb3("Todo removed successfully!")\n\t\trg3 sa7\n\t} gher {\n\t\tetb3("Invalid todo number!")\n\t\trg3 ghalt\n\t}\n}\n\nsndo2 listTodos() {\n\tlw todos.length == 0 {\n\t\tetb3("No todos in the list!")\n\t\trg3\n\t}\n\t\n\tetb3("Your todos:")\n\tfor (i = 0; i < todos.length; i++) {\n\t\tetb3("{i+1}. {todos[i]}")\n\t}\n}\n\ntalama sa7 {\n\tchoice = showMenu()\n\t\n\tlw choice == 1 {\n\t\taddTodo()\n\t} aw choice == 2 {\n\t\tremoveTodo()\n\t} aw choice == 3 {\n\t\tlistTodos()\n\t} aw choice == 4 {\n\t\tetb3("Goodbye!")\n\t\tw2f\n\t} gher {\n\t\tetb3("Invalid choice! Please try again.")\n\t}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Todo list application'
-                },
-                // Temperature converter program
-                {
-                    label: 'temp-converter-app',
-                    insertText: new vscode.SnippetString('# Temperature Converter\n\nsndo2 celsiusToFahrenheit(kasr celsius) {\n\tkasr fahrenheit = celsius * 9/5 + 32\n\trg3 fahrenheit\n}\n\nsndo2 fahrenheitToCelsius(kasr fahrenheit) {\n\tkasr celsius = (fahrenheit - 32) * 5/9\n\trg3 celsius\n}\n\ntalama sa7 {\n\tetb3("Temperature Converter")\n\tetb3("--------------------")\n\tetb3("1. Celsius to Fahrenheit")\n\tetb3("2. Fahrenheit to Celsius")\n\tetb3("3. Exit")\n\tetb3("Enter your choice:")\n\trakm choice = da5l()\n\t\n\tlw choice == 1 {\n\t\tetb3("Enter temperature in Celsius:")\n\t\tkasr celsius = da5l()\n\t\tkasr fahrenheit = celsiusToFahrenheit(celsius)\n\t\tetb3("{celsius}°C = {fahrenheit}°F")\n\t} aw choice == 2 {\n\t\tetb3("Enter temperature in Fahrenheit:")\n\t\tkasr fahrenheit = da5l()\n\t\tkasr celsius = fahrenheitToCelsius(fahrenheit)\n\t\tetb3("{fahrenheit}°F = {celsius}°C")\n\t} aw choice == 3 {\n\t\tetb3("Goodbye!")\n\t\tw2f\n\t} gher {\n\t\tetb3("Invalid choice! Please try again.")\n\t}\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Temperature converter application'
-                },
-                // Absolute value function
-                {
-                    label: 'absolute-function',
-                    insertText: new vscode.SnippetString('sando2 absolute(rakm a) {\n\tlw a < 0 {\n\t\tx = a * (-1)\n\t\trg3 x\n\t}\n\tgher { rg3 a }\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Function to calculate absolute value'
-                },
-                // Prime checker function
-                {
-                    label: 'isprime-function',
-                    insertText: new vscode.SnippetString('sndo2 isprime(rakm num) {\n\trakm pos = absolute(num)\n\n\t# Handle numbers <= 1\n\tlw num <= 1 {\n\t\tetb3("{num} is not a prime number")\n\t\trg3 false \n\t}\n\n\trakm i = 2\n\trakm mul = i * i  # Initialize mul outside the loop\n\n\t# Loop to check for divisibility\n\ttalama mul <= num {\n\t\tlw do_modulus(pos, i) == 0 {\n\t\t\tetb3("{num} is not a prime number")\n\t\t\trg3 false \n\t\t}\n\t\ti = i + 1\n\t\tmul = i * i  # Update mul inside the loop\n\t}\n\n\t# If no divisor was found, it\'s a prime number\n\tetb3("{num} is a prime number")\n\trg3 true\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Function to check if a number is prime'
-                },
-                // Modulus function
-                {
-                    label: 'modulus-function',
-                    insertText: new vscode.SnippetString('sando2 do_modulus(rakm b, rakm c) {\n\tlw c == 0 { \n\t\tetb3("Error: division by zero is not allowed")\n\t\trg3 0\n\t}\n\n\taba = absolute(b) \n\tabb = absolute(c)\n\n\tlw aba < abb { rg3 b }\n\n\ttalama aba >= abb {\n\t\taba = aba - abb\n\t}\n\t\n\tlw b < 0 {\n\t\tx = aba * (-1)\n\t\trg3 x\n\t}\n\tgher { rg3 aba }\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Function to calculate modulus'
-                },
-                // Multiplication table
-                {
-                    label: 'multiplication-table',
-                    insertText: new vscode.SnippetString('etb3("Enter a number:")\nrakm num = da5l()\nrakm i = 0\n\nkarr x=1 l7d 10 {\n\tmul = num * i\n\ti = i + 1\n\tetb3("{num} * {i-1} = {mul}")\n}'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Generate multiplication table'
-                },
-                // Variable swapping
-                {
-                    label: 'swap-variables',
-                    insertText: new vscode.SnippetString('etb3("Enter 2 numbers to be swapped:")\nx = da5l()\ny = da5l()\n\netb3("Before swapping: x = {x}, y = {y}")\n\ntemp = x\nx = y\ny = temp\n\netb3("After swapping: x = {x}, y = {y}")'),
-                    kind: vscode.CompletionItemKind.Snippet,
-                    detail: 'Swap the values of two variables'
-                }
-            ];
-
-            return [...keywordItems, ...listOpItems, ...operatorItems, ...functionItems, ...snippets];
+            return null;
         }
     });
-
-    // Register document diagnostic provider
-    const collection = vscode.languages.createDiagnosticCollection('flex');
+    context.subscriptions.push(hoverProvider);
     
-    // Function to analyze document for potential issues
-    function analyzeDocument(document) {
-        if (document.languageId !== 'flex') {
-            return;
+    // Register event listeners for diagnostics
+    context.subscriptions.push(
+        vscode.workspace.onDidOpenTextDocument(document => provideDiagnostics(document)),
+        vscode.workspace.onDidChangeTextDocument(event => provideDiagnostics(event.document)),
+        vscode.workspace.onDidSaveTextDocument(document => provideDiagnostics(document))
+    );
+    
+    // Analyze all flex documents that are already open
+    vscode.workspace.textDocuments.forEach(document => {
+        if (document.languageId === 'flex') {
+            provideDiagnostics(document);
         }
-        
-        const text = document.getText();
-        const lines = text.split('\n');
-        const diagnostics = [];
-        
-        // Check each line for common errors
-        lines.forEach((line, lineIndex) => {
-            // Check for semicolons at end of statements (unused in Flex)
-            if (line.trim().endsWith(';') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.length - 1);
-                const range = new vscode.Range(position, position.translate(0, 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Flex does not require semicolons at the end of statements.',
-                    vscode.DiagnosticSeverity.Information
-                ));
-            }
-            
-            // Check for if statements without curly braces
-            const ifMatch = line.match(/\b(lw|if|cond)\s+.+[^{]\s*$/);
-            if (ifMatch && !line.includes('{') && !line.trim().startsWith('//') && !line.trim().startsWith('#')) {
-                const position = new vscode.Position(lineIndex, line.length);
-                const range = new vscode.Range(position, position);
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, code blocks must be enclosed in curly braces {}.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for incorrect boolean values (true/false instead of sa7/ghalt)
-            if ((line.includes(' true') || line.includes('=true')) && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('true'));
-                const range = new vscode.Range(position, position.translate(0, 4));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, the Arabic syntax for boolean true is "sa7".',
-                    vscode.DiagnosticSeverity.Information
-                ));
-            }
-            
-            if ((line.includes(' false') || line.includes('=false')) && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('false'));
-                const range = new vscode.Range(position, position.translate(0, 5));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, the Arabic syntax for boolean false is "ghalt".',
-                    vscode.DiagnosticSeverity.Information
-                ));
-            }
-            
-            // Check for incorrect logical operators (&&, ||)
-            if (line.includes('&&') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('&&'));
-                const range = new vscode.Range(position, position.translate(0, 2));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, use "and" instead of "&&" for logical AND.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            if (line.includes('||') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('||'));
-                const range = new vscode.Range(position, position.translate(0, 2));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, use "or" instead of "||" for logical OR.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for da5l() without assignment
-            if (line.includes('da5l()') && !line.includes('=') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('da5l()'));
-                const range = new vscode.Range(position, position.translate(0, 6));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Input functions must be assigned to a variable. Example: x = da5l()',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for input() without assignment
-            if (line.includes('input()') && !line.includes('=') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('input()'));
-                const range = new vscode.Range(position, position.translate(0, 7));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Input functions must be assigned to a variable. Example: x = input()',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for parameters in da5l/input
-            if (line.match(/da5l\([^)]+\)/) && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('da5l('));
-                const range = new vscode.Range(position, position.translate(0, line.substring(line.indexOf('da5l(')).indexOf(')') + 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Input functions do not accept parameters. Use etb3() to display prompts before input.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for parameters in input
-            if (line.match(/input\([^)]+\)/) && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('input('));
-                const range = new vscode.Range(position, position.translate(0, line.substring(line.indexOf('input(')).indexOf(')') + 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Input functions do not accept parameters. Use print() to display prompts before input.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check karr loop syntax
-            const karrWrongSyntax = line.match(/karr\s*\([^)]*\)/);
-            if (karrWrongSyntax && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('karr'));
-                const range = new vscode.Range(position, position.translate(0, line.substring(line.indexOf('karr')).indexOf(')') + 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Incorrect karr syntax. Use: karr i=0 l7d 10 {}, not C-style syntax.',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for missing l7d in karr loops
-            const karrNoL7d = line.match(/karr\s+[a-zA-Z0-9_]+\s*=\s*[0-9]+\s+[0-9]+/);
-            if (karrNoL7d && !line.includes('l7d') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('karr'));
-                const range = new vscode.Range(position, position.translate(0, line.length - line.indexOf('karr')));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Missing "l7d" in karr loop. Correct syntax: karr i=0 l7d 10 {}',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for type mismatch in variable declaration
-            const intStringMismatch = line.match(/\b(rakm|int)\s+[a-zA-Z0-9_]+\s*=\s*["']/);
-            if (intStringMismatch && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, intStringMismatch.index);
-                const range = new vscode.Range(position, position.translate(0, line.length - intStringMismatch.index));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Type mismatch: Cannot assign a string to a variable declared as integer (rakm/int).',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for missing parentheses in function calls
-            const missingParentheses = line.match(/\b(etb3|print|printf|cout)\s+["'][^)]*$/);
-            if (missingParentheses && !line.includes('(') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, missingParentheses.index);
-                const range = new vscode.Range(position, position.translate(0, 5));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Missing parentheses in function call. Use: etb3("message")',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for incorrect string concatenation (+ instead of interpolation)
-            if (line.match(/["'].*["']\s*\+\s*[a-zA-Z0-9_]+/) && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('+'));
-                const range = new vscode.Range(position, position.translate(0, 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, string interpolation is preferred over concatenation. Use: "message {variable}"',
-                    vscode.DiagnosticSeverity.Information
-                ));
-            }
-            
-            // Check for assignment in conditional (= instead of ==)
-            const assignmentInConditional = line.match(/\b(lw|if|cond|aw|elif|talama|while)\s+[^=]*[^=!><]=[^=]/);
-            if (assignmentInConditional && !line.includes('//') && !line.includes('#')) {
-                const assignPos = line.indexOf('=', assignmentInConditional.index);
-                const position = new vscode.Position(lineIndex, assignPos);
-                const range = new vscode.Range(position, position.translate(0, 1));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Using assignment (=) instead of equality (==) in condition.',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for incorrect list append (append instead of push)
-            if (line.includes('.append(') && !line.includes('//') && !line.includes('#')) {
-                const position = new vscode.Position(lineIndex, line.indexOf('.append'));
-                const range = new vscode.Range(position, position.translate(0, 7));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'In Flex, use ".push()" instead of ".append()" for adding to a list.',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-            
-            // Check for talama loop with sa7 but no break (potential infinite loop)
-            if (line.match(/\b(talama|while)\s+sa7/) && !line.includes('//') && !line.includes('#')) {
-                // Look for this line and following lines to see if there's a break
-                let hasBreak = false;
-                let braceCount = 0;
-                let i = lineIndex;
-                
-                while (i < lines.length) {
-                    const currentLine = lines[i];
-                    if (currentLine.includes('{')) braceCount++;
-                    if (currentLine.includes('}')) braceCount--;
-                    
-                    if (currentLine.match(/\b(w2f|break|stop)\b/)) {
-                        hasBreak = true;
-                        break;
-                    }
-                    
-                    if (braceCount === 0 && i > lineIndex) break;
-                    i++;
-                }
-                
-                if (!hasBreak) {
-                    const position = new vscode.Position(lineIndex, line.indexOf('talama') !== -1 ? line.indexOf('talama') : line.indexOf('while'));
-                    const range = new vscode.Range(position, position.translate(0, 6));
-                    diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        'Potential infinite loop: talama/while with constant condition (sa7) should include a break.',
-                        vscode.DiagnosticSeverity.Warning
-                    ));
-                }
-            }
-            
-            // Check for function return keyword mismatch (return in Arabic function or rg3 in English function)
-            if (line.includes('return') && !line.includes('//') && !line.includes('#')) {
-                // Check if we're inside an Arabic function
-                let isArabicFunction = false;
-                let i = lineIndex;
-                
-                while (i >= 0) {
-                    if (lines[i].match(/\b(sndo2|sando2)\b/)) {
-                        isArabicFunction = true;
-                        break;
-                    }
-                    if (lines[i].match(/\b(fun|function|fn)\b/)) {
-                        break;
-                    }
-                    i--;
-                }
-                
-                if (isArabicFunction) {
-                    const position = new vscode.Position(lineIndex, line.indexOf('return'));
-                    const range = new vscode.Range(position, position.translate(0, 6));
-                    diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        'Use "rg3" instead of "return" in Arabic-style functions (sndo2/sando2).',
-                        vscode.DiagnosticSeverity.Warning
-                    ));
-                }
-            }
-            
-            if (line.includes('rg3') && !line.includes('//') && !line.includes('#')) {
-                // Check if we're inside an English function
-                let isEnglishFunction = false;
-                let i = lineIndex;
-                
-                while (i >= 0) {
-                    if (lines[i].match(/\b(fun|function|fn)\b/)) {
-                        isEnglishFunction = true;
-                        break;
-                    }
-                    if (lines[i].match(/\b(sndo2|sando2)\b/)) {
-                        break;
-                    }
-                    i--;
-                }
-                
-                if (isEnglishFunction) {
-                    const position = new vscode.Position(lineIndex, line.indexOf('rg3'));
-                    const range = new vscode.Range(position, position.translate(0, 3));
-                    diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        'Use "return" instead of "rg3" in English-style functions (fun/function/fn).',
-                        vscode.DiagnosticSeverity.Warning
-                    ));
-                }
-            }
-            
-            // Check for division by zero
-            if (line.match(/\/\s*0\b/) && !line.includes('//') && !line.includes('#')) {
-                const divPos = line.indexOf('/');
-                const position = new vscode.Position(lineIndex, divPos);
-                const range = new vscode.Range(position, position.translate(0, 2));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Division by zero will cause a runtime error.',
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-            
-            // Check for incorrect list declaration
-            if (line.match(/\b(dorg|list)\s+[a-zA-Z0-9_]+\s*=\s*array\s*\(/)) {
-                const position = new vscode.Position(lineIndex, line.indexOf('array'));
-                const range = new vscode.Range(position, position.translate(0, 5));
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    'Incorrect list declaration. Use square brackets []: dorg myList = [1, 2, 3]',
-                    vscode.DiagnosticSeverity.Error
-                ));
+    });
+
+    // Show first-time welcome prompt
+    const hasPrompted = context.globalState.get('hasPromptedForCompiler', false);
+    if (!hasPrompted) {
+        showFirstTimeWelcomePrompt(context);
+    }
+
+    // Register commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('flex.runFile', runFlexFile),
+        vscode.commands.registerCommand('flex.verifyCompiler', () => verifyCompilerInstallation(context)),
+        vscode.commands.registerCommand('flex.validateFile', validateFlexFile)
+    );
+}
+
+/**
+ * Run a Flex file
+ */
+async function runFlexFile() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor found');
+        return;
+    }
+
+    // Make sure the file is saved
+    if (editor.document.isDirty) {
+        await editor.document.save();
+    }
+    
+    const filePath = editor.document.uri.fsPath;
+    
+    // Find the Flex compiler
+    const compilerPath = await findFlexCompiler();
+    if (!compilerPath) {
+        vscode.window.showErrorMessage(
+            'Flex compiler not found. Please install it or add it to your PATH.',
+            'Download'
+        ).then(selection => {
+            if (selection === 'Download') {
+                vscode.env.openExternal(vscode.Uri.parse('https://github.com/Flex-Language/Flex/releases/'));
             }
         });
-        
-        collection.set(document.uri, diagnostics);
+        return;
     }
-    
-    // Analyze any active document
-    if (vscode.window.activeTextEditor) {
-        analyzeDocument(vscode.window.activeTextEditor.document);
-    }
-    
-    // Analyze documents when they are opened or changed
-    vscode.workspace.onDidOpenTextDocument(analyzeDocument);
-    vscode.workspace.onDidChangeTextDocument(event => {
-        analyzeDocument(event.document);
-    });
-    
-    // Analyze all Flex documents in the workspace
-    vscode.workspace.textDocuments.forEach(analyzeDocument);
 
-    context.subscriptions.push(
-        provider, 
-        runCommand, 
-        runButton,
-        hoverProvider,
-        signatureHelpProvider,
-        collection
-    );
+    // Create a new terminal
+    const terminal = vscode.window.createTerminal('Flex');
+    terminal.show(true);
+
+    // Get the directory of the file
+    const fileDir = path.dirname(filePath);
+    
+    // Clear terminal and run the Flex file
+    if (os.platform() === 'win32') {
+        terminal.sendText('cls');
+    } else {
+        terminal.sendText('clear');
+    }
+    
+    // Execute the Flex compiler
+    if (compilerPath === 'flex') {
+        terminal.sendText(`flex "${filePath}"`);
+    } else {
+        terminal.sendText(`"${compilerPath}" "${filePath}"`);
+    }
+}
+
+/**
+ * Validate a Flex file using the compiler (if available)
+ */
+async function validateFlexFile() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor found');
+        return;
+    }
+
+    if (editor.document.languageId !== 'flex') {
+        vscode.window.showErrorMessage('This is not a Flex file');
+        return;
+    }
+
+    // Make sure the file is saved
+    if (editor.document.isDirty) {
+        await editor.document.save();
+    }
+
+    // Find the Flex compiler
+    const compilerPath = await findFlexCompiler();
+    if (!compilerPath) {
+        vscode.window.showErrorMessage(
+            'Flex compiler not found. Please install it or add it to your PATH.',
+            'Download'
+        ).then(selection => {
+            if (selection === 'Download') {
+                vscode.env.openExternal(vscode.Uri.parse('https://github.com/Flex-Language/Flex/releases/'));
+            }
+        });
+        return;
+    }
+
+    try {
+        // Run the compiler with check-only flag
+        const filePath = editor.document.uri.fsPath;
+        const result = await execAsync(`"${compilerPath}" --check "${filePath}"`, { timeout: 5000 });
+        
+        // If we got here without error, it's valid
+        vscode.window.showInformationMessage('✅ Flex code validation successful! No errors found.');
+    } catch (error) {
+        // If there was an error, but no stderr, it might be an issue with --check flag
+        if (!error.stderr) {
+            try {
+                // Try without the check flag, but redirect output to avoid execution
+                if (os.platform() === 'win32') {
+                    await execAsync(`"${compilerPath}" "${editor.document.uri.fsPath}" > NUL`, { timeout: 5000 });
+                } else {
+                    await execAsync(`"${compilerPath}" "${editor.document.uri.fsPath}" > /dev/null`, { timeout: 5000 });
+                }
+                vscode.window.showInformationMessage('✅ Flex code validation successful! No errors found.');
+            } catch (execError) {
+                if (execError.stderr) {
+                    vscode.window.showErrorMessage(`❌ Flex code validation failed: ${execError.stderr}`);
+                } else {
+                    vscode.window.showErrorMessage('❌ Flex code validation failed with an unknown error');
+                }
+            }
+        } else {
+            vscode.window.showErrorMessage(`❌ Flex code validation failed: ${error.stderr}`);
+        }
+    }
 }
 
 function deactivate() {}

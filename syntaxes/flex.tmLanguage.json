@@ -29,6 +29,12 @@
     },
     {
       "include": "#imports"
+    },
+    {
+      "include": "#list_operations"
+    },
+    {
+      "include": "#control_structures"
     }
   ],
   "repository": {
@@ -79,7 +85,7 @@
       "patterns": [
         {
           "name": "keyword.control.flex",
-          "match": "\\b(lw|aw|gher|if|elif|else|talama|talma|tlma|while|loop|karr|l7d|for|w2f|break|stop|rg3|return|cond|otherwise)\\b"
+          "match": "\\b(lw|aw|gher|if|elif|else|otherwise|talama|talma|tlma|while|loop|karr|l7d|for|w2f|break|stop|rg3|return|cond)\\b"
         },
         {
           "name": "keyword.other.flex",
@@ -106,12 +112,16 @@
           "match": "\\b(sndo2|sando2|fn|fun|function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\("
         },
         {
+          "name": "entity.name.function.flex",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\("
+        },
+        {
           "name": "support.function.flex",
-          "match": "\\b(etb3|out|output|print|printf|cout|scan|read|input|da5l|da5al|d5l)\\b"
+          "match": "\\b(etb3|out|output|printf|print|cout|scan|read|input|da5l|da5al|d5l)\\b"
         },
         {
           "name": "support.function.list.flex",
-          "match": "\\.(push|pop|remove|length)\\b"
+          "match": "\\.(push|pop|remove|delete|length)\\b"
         }
       ]
     },
@@ -119,7 +129,7 @@
       "patterns": [
         {
           "name": "keyword.operator.arithmetic.flex",
-          "match": "\\+\\+|--|[+\\-*/]"
+          "match": "\\+\\+|--|\\+=|-=|\\*=|/=|[+\\-*/]"
         },
         {
           "name": "keyword.operator.comparison.flex",
@@ -160,6 +170,46 @@
         {
           "name": "keyword.control.import.flex",
           "match": "\\b(geep|geeb|import)\\s+\"[^\"]*\""
+        }
+      ]
+    },
+    "list_operations": {
+      "patterns": [
+        {
+          "name": "variable.other.member.flex",
+          "match": "\\[[^\\]]*\\]"
+        },
+        {
+          "name": "support.function.builtin.flex",
+          "match": "\\b(length)\\s*\\("
+        },
+        {
+          "name": "constant.language.flex",
+          "match": "\\[[^\\]]*\\]"
+        }
+      ]
+    },
+    "control_structures": {
+      "patterns": [
+        {
+          "name": "keyword.control.conditional.flex",
+          "match": "\\b(lw|if|cond)\\b"
+        },
+        {
+          "name": "keyword.control.conditional.else.flex",
+          "match": "\\b(aw|elif)\\b"
+        },
+        {
+          "name": "keyword.control.conditional.else.flex",
+          "match": "\\b(gher|else|otherwise)\\b"
+        },
+        {
+          "name": "keyword.control.loop.flex",
+          "match": "\\b(karr|for)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*[^\\s]+\\s+l7d\\s+[^\\s]+"
+        },
+        {
+          "name": "keyword.control.loop.flex",
+          "match": "\\b(talama|talma|tlma|while|loop)\\b"
         }
       ]
     }

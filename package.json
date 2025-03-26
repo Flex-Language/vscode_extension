@@ -1,6 +1,6 @@
 {
   "name": "flex-language",
-  "displayName": "Flex Language Support",
+  "displayName": "Flex",
   "description": "Language support for the Flex programming language - a multi-syntax language for beginners and advanced developers",
   "version": "0.1.0",
   "publisher": "mikawi",
@@ -13,7 +13,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^0.1.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Programming Languages",
@@ -27,7 +27,7 @@
     "beginners"
   ],
   "activationEvents": [
-    "onLanguage:flex"
+    "onStartupFinished"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -36,8 +36,33 @@
         "command": "flex.runFile",
         "title": "Run Flex File",
         "icon": "$(play)"
+      },
+      {
+        "command": "flex.verifyCompiler",
+        "title": "Flex: Verify Compiler Installation",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.configureCompilerPath",
+        "title": "Flex: Configure Compiler Path",
+        "category": "Flex"
       }
     ],
+    "configuration": {
+      "title": "Flex",
+      "properties": {
+        "flex.compilerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Flex compiler executable"
+        },
+        "flex.strictVariableDeclarations": {
+          "type": "boolean",
+          "default": false,
+          "description": "When enabled, shows warnings for variables used without explicit declaration"
+        }
+      }
+    },
     "menus": {
       "editor/title": [
         {
@@ -84,7 +109,7 @@
   },
   "devDependencies": {
     "@types/node": "^14.18.63",
-    "@types/vscode": "^0.1.0"
+    "@types/vscode": "^1.75.0"
   },
   "repository": {
     "type": "git",
