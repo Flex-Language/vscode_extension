@@ -13,7 +13,7 @@ etb3("The value of pi is {pi} and the count is {count}")
 
 # 3. If-else statements
 lw count > 0 {
-    etb3("Count is positive")
+    et3("Count is positive")
 } aw count < 0 {
     etb3("Count is negative")
 } gher {

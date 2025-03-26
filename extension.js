@@ -1,7 +1,57 @@
 const vscode = require('vscode');
+const { exec } = require('child_process');
+const path = require('path');
 
 function activate(context) {
     console.log('Flex Language Support is now active!');
+
+    // Register the run command
+    let runCommand = vscode.commands.registerCommand('flex.runFile', function () {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active editor found');
+            return;
+        }
+
+        const document = editor.document;
+        if (document.languageId !== 'flex') {
+            vscode.window.showErrorMessage('This is not a Flex file');
+            return;
+        }
+
+        // Save the file before running
+        document.save().then(() => {
+            const filePath = document.uri.fsPath;
+            const terminal = vscode.window.createTerminal('Flex Run');
+            terminal.show();
+            
+            // Assuming 'flex' is the command to run Flex files
+            // You might need to adjust this based on the actual flex interpreter command
+            terminal.sendText(`flex "${filePath}"`);
+        });
+    });
+
+    // Register a status bar item for the run button
+    const runButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    runButton.text = "$(play) Run Flex";
+    runButton.command = 'flex.runFile';
+    runButton.tooltip = 'Run the current Flex file';
+    
+    // Show the run button only when a Flex file is active
+    function updateRunButtonVisibility() {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && editor.document.languageId === 'flex') {
+            runButton.show();
+        } else {
+            runButton.hide();
+        }
+    }
+
+    // Update button visibility when changing editors
+    vscode.window.onDidChangeActiveTextEditor(updateRunButtonVisibility);
+    
+    // Initial update
+    updateRunButtonVisibility();
 
     // Register a completion item provider for Flex files
     let provider = vscode.languages.registerCompletionItemProvider('flex', {
@@ -131,7 +181,7 @@ function activate(context) {
         }
     });
 
-    context.subscriptions.push(provider);
+    context.subscriptions.push(provider, runCommand, runButton);
 }
 
 function deactivate() {}

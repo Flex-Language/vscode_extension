@@ -37,6 +37,11 @@ This extension provides comprehensive language support for the Flex programming 
   - Comment toggling (single and multi-line)
   - Word pattern recognition
   - Auto-indent when entering control blocks
+  
+- **Run Flex files** directly from VSCode:
+  - Run button in the status bar when editing Flex files
+  - Run button in the editor title area
+  - Command palette option: "Run Flex File"
 
 ## Installation
 
@@ -56,6 +61,16 @@ Type any keyword or start of a construct to see completion suggestions:
 - Type `lw` to get suggestions for an if statement
 - Type `.` after a list variable to see available list operations
 - Use snippets by typing their prefix (e.g., `ifelse`, `function`, `for`)
+
+### Running Flex Programs
+
+To run a Flex program:
+1. Open a Flex file (with `.lx`, `.fx`, or `.flex` extension)
+2. Click the "Run Flex" button in the status bar at the bottom of the window
+3. Alternatively, click the "Run" icon in the editor title area
+4. Or use the Command Palette (Ctrl+Shift+P) and search for "Run Flex File"
+
+Note: This requires the Flex interpreter to be installed and available in your PATH. The extension uses the `flex` command to execute your programs.
 
 ### Example
 
