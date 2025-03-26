@@ -1,0 +1,59 @@
+# Single line comment using #
+// Single line comment using //
+
+/* Multi-line comment
+   Testing block comments
+*/
+
+''' Documentation comment
+    This is a documentation block
+'''
+
+# Import statement
+geep "math"
+
+# Variable declarations with different types
+rakm x = 42
+kasr pi = 3.14159
+so2al isValid = sa7
+klma message = "Hello, World!"
+dorg numbers = [1, 2, 3, 4, 5]
+
+# Function definition
+sndo2 calculateSum(rakm a, rakm b) {
+    rg3 a + b
+}
+
+# Control structures
+lw (x > 0) {
+    etb3("Positive number")
+} gher lw (x < 0) {
+    etb3("Negative number")
+} gher {
+    etb3("Zero")
+}
+
+# Loops
+talama (x > 0) {
+    etb3(x)
+    x = x - 1
+}
+
+karr (rakm i = 0; i < 5; i++) {
+    etb3(i)
+}
+
+# Input/Output
+etb3("Enter a number: ")
+rakm input = da5l()
+
+# Boolean operations
+so2al result = (x > 0) and (y < 10)
+
+# List operations
+dorg list = [1, 2, 3]
+list[0] = 10
+
+# String with interpolation
+klma name = "John"
+etb3("Hello, {name}!") 

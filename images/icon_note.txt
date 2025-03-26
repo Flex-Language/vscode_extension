@@ -1,0 +1,1 @@
+You need to create a proper icon.png file. For now, let's use a placeholder
