@@ -63,6 +63,7 @@ This extension provides comprehensive language support for the Flex programming 
   - Run button in the editor title area
   - Command palette option: "Run Flex File"
   - Automatic Flex interpreter detection with download prompt if not found
+  - On macOS, directly uses the 'flex' command without complex path searching
 
 ## Installation
 
@@ -76,7 +77,23 @@ This extension provides comprehensive language support for the Flex programming 
 - **Flex Interpreter**: The extension requires the Flex interpreter to run Flex files
   - The extension automatically checks if the Flex interpreter is installed
   - If not found, it will prompt you to download it from the [Flex Releases page](https://github.com/Flex-Language/Flex/releases/)
-  - Make sure to add the Flex interpreter to your PATH after installation
+  - **macOS Users**: Install the Flex interpreter to `/usr/local/bin/flex` or ensure it's in your PATH as the 'flex' command
+  - **Windows/Linux Users**: Make sure to add the Flex interpreter to your PATH after installation
+
+## Platform-specific Notes
+
+### macOS
+- The extension directly uses the 'flex' command without searching for other paths
+- Ensure the Flex compiler is installed as 'flex' in your PATH (typically in `/usr/local/bin/flex`)
+- To install: `brew install flex` or manually place the executable at `/usr/local/bin/flex`
+
+### Windows
+- The extension searches for the Flex compiler in standard installation locations
+- Add the Flex compiler directory to your PATH or specify a custom path in settings
+
+### Linux
+- The extension primarily looks for the 'flex' command in your PATH
+- You can also specify a custom path in settings if needed
 
 ## Usage
 
