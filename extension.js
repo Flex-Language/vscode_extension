@@ -94,41 +94,53 @@ async function verifyCompilerOutput(compilerPath) {
  * @returns {string[]} Array of possible compiler paths
  */
 function getOSSpecificPaths() {
-    const home = process.env.HOME || process.env.USERPROFILE;
-    const basePaths = [
-        // path.join(home, 'Developer/Flex-1'),
-        // path.join(home, 'Flex-1'),
-        // path.join(home, 'flex'),
-        '/usr/local/bin/flex'
-        // '/opt/flex'
-    ];
-
-    const osPaths = {
-        'macOS': [ // macOS
-            '/usr/local/bin/flex',
-        ],
-        'win32': [ // Windows
-            'C:\\Program Files (x86)\\Flex\\flex.exe',
-            'C:\\Program Files\\Flex\\flex.exe',
-            'C:\\Flex\\flex.exe',
-        ],
-        'linux': [ // Linux
-            'src/flex_tester/flex',
-            'build/flex',
-            'bin/flex',
-            'flex'
-        ]
-    };
-
-    const platform = os.platform();
-    const paths = [];
+    // Direct paths that don't need joining
+    const directPaths = [];
     
+    // Platform-specific paths
+    if (os.platform() === 'darwin') { // macOS
+        // On macOS, just use the 'flex' command directly
+        return ['flex'];
+    } else if (os.platform() === 'win32') { // Windows
+        directPaths.push('C:\\Program Files (x86)\\Flex\\flex.exe');
+        directPaths.push('C:\\Program Files\\Flex\\flex.exe');
+        directPaths.push('C:\\Flex\\flex.exe');
+    } else if (os.platform() === 'linux') { // Linux
+        // directPaths.push('/usr/local/bin/flex');
+        // directPaths.push('/usr/bin/flex');
+        // directPaths.push('/bin/flex');
+        return ['flex'];
+    }
+    
+    const home = process.env.HOME || process.env.USERPROFILE;
+    
+    // Base paths to join with compiler names
+    const basePaths = [
+        path.join(home, 'Developer/Flex-1'),
+        path.join(home, 'Flex-1'),
+        path.join(home, 'flex'),
+        '/usr/local/flex',
+        '/opt/flex'
+    ];
+    
+    // Compiler names to join with base paths
+    const compilerNames = [
+        'flex',
+        'bin/flex',
+        'build/flex',
+        'src/flex_tester/flex'
+    ];
+    
+    // Combine all paths
+    const paths = [...directPaths];
+    
+    // Add composed paths
     basePaths.forEach(base => {
-        osPaths[platform].forEach(compiler => {
+        compilerNames.forEach(compiler => {
             paths.push(path.join(base, compiler));
         });
     });
-
+    
     return paths;
 }
 
@@ -725,7 +737,16 @@ async function runFlexFile() {
     
     const filePath = editor.document.uri.fsPath;
     
-    // Find the Flex compiler
+    // On macOS, directly use the flex command without searching for paths
+    if (os.platform() === 'darwin') {
+        const terminal = vscode.window.createTerminal('Flex');
+        terminal.show(true);
+        terminal.sendText('clear');
+        terminal.sendText(`flex "${filePath}"`);
+        return;
+    }
+    
+    // For other platforms, find the Flex compiler
     const compilerPath = await findFlexCompiler();
     if (!compilerPath) {
         vscode.window.showErrorMessage(
@@ -743,9 +764,6 @@ async function runFlexFile() {
     const terminal = vscode.window.createTerminal('Flex');
     terminal.show(true);
 
-    // Get the directory of the file
-    const fileDir = path.dirname(filePath);
-    
     // Clear terminal and run the Flex file
     if (os.platform() === 'win32') {
         terminal.sendText('cls');
@@ -781,7 +799,36 @@ async function validateFlexFile() {
         await editor.document.save();
     }
 
-    // Find the Flex compiler
+    const filePath = editor.document.uri.fsPath;
+
+    // On macOS, directly use the flex command
+    if (os.platform() === 'darwin') {
+        try {
+            // Try with the check flag on macOS
+            await execAsync(`flex --check "${filePath}"`, { timeout: 5000 });
+            vscode.window.showInformationMessage('✅ Flex code validation successful! No errors found.');
+        } catch (error) {
+            // If there was an error, check if it's related to the --check flag
+            if (!error.stderr || error.stderr.includes('unknown option')) {
+                try {
+                    // Try without the check flag, but redirect output
+                    await execAsync(`flex "${filePath}" > /dev/null`, { timeout: 5000 });
+                    vscode.window.showInformationMessage('✅ Flex code validation successful! No errors found.');
+                } catch (execError) {
+                    if (execError.stderr) {
+                        vscode.window.showErrorMessage(`❌ Flex code validation failed: ${execError.stderr}`);
+                    } else {
+                        vscode.window.showErrorMessage('❌ Flex code validation failed with an unknown error');
+                    }
+                }
+            } else {
+                vscode.window.showErrorMessage(`❌ Flex code validation failed: ${error.stderr}`);
+            }
+        }
+        return;
+    }
+
+    // For other platforms, find the Flex compiler
     const compilerPath = await findFlexCompiler();
     if (!compilerPath) {
         vscode.window.showErrorMessage(
@@ -797,7 +844,6 @@ async function validateFlexFile() {
 
     try {
         // Run the compiler with check-only flag
-        const filePath = editor.document.uri.fsPath;
         const result = await execAsync(`"${compilerPath}" --check "${filePath}"`, { timeout: 5000 });
         
         // If we got here without error, it's valid
@@ -808,9 +854,9 @@ async function validateFlexFile() {
             try {
                 // Try without the check flag, but redirect output to avoid execution
                 if (os.platform() === 'win32') {
-                    await execAsync(`"${compilerPath}" "${editor.document.uri.fsPath}" > NUL`, { timeout: 5000 });
+                    await execAsync(`"${compilerPath}" "${filePath}" > NUL`, { timeout: 5000 });
                 } else {
-                    await execAsync(`"${compilerPath}" "${editor.document.uri.fsPath}" > /dev/null`, { timeout: 5000 });
+                    await execAsync(`"${compilerPath}" "${filePath}" > /dev/null`, { timeout: 5000 });
                 }
                 vscode.window.showInformationMessage('✅ Flex code validation successful! No errors found.');
             } catch (execError) {
