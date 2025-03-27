@@ -96,20 +96,16 @@ async function verifyCompilerOutput(compilerPath) {
 function getOSSpecificPaths() {
     const home = process.env.HOME || process.env.USERPROFILE;
     const basePaths = [
-        path.join(home, 'Developer/Flex-1'),
-        path.join(home, 'Flex-1'),
-        path.join(home, 'flex'),
-        '/usr/local/flex',
-        '/opt/flex'
+        // path.join(home, 'Developer/Flex-1'),
+        // path.join(home, 'Flex-1'),
+        // path.join(home, 'flex'),
+        '/usr/local/bin/flex'
+        // '/opt/flex'
     ];
 
     const osPaths = {
         'macOS': [ // macOS
             '/usr/local/bin/flex',
-            'src/flex_tester/flex',
-            'build/flex',
-            'bin/flex',
-            'flex'
         ],
         'win32': [ // Windows
             'C:\\Program Files (x86)\\Flex\\flex.exe',
