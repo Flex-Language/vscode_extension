@@ -207,7 +207,7 @@ The extension helps you avoid these common errors in Flex:
 
 ## Contributing
 
-Found a bug or want to contribute? Visit our [GitHub repository](https://github.com/Flex-Language/vscode_extension).
+Found a bug or want to contribute? Visit our [GitHub repository](https://github.com/Flex-Language/vscode_extension/issues).
 
 ## License
 
