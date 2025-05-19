@@ -1,0 +1,148 @@
+{
+  "name": "flex-language",
+  "displayName": "Flex",
+  "description": "Language support for the Flex programming language - a multi-syntax language for beginners and advanced developers",
+  "version": "0.1.1",
+  "publisher": "mikawi",
+  "author": {
+    "name": "mikawi"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Flex-Language/vscode_extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Flex-Language/vscode_extension/issues"
+  },
+  "homepage": "https://github.com/Flex-Language/vscode_extension",
+  "icon": "assets/data.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Education"
+  ],
+  "keywords": [
+    "flex",
+    "programming",
+    "franco-arabic",
+    "multi-syntax",
+    "beginners",
+    "AI",
+    "code assistance"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "flex.runFile",
+        "title": "Run Flex File",
+        "icon": "$(play)"
+      },
+      {
+        "command": "flex.verifyCompiler",
+        "title": "Flex: Verify Compiler Installation",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.configureCompilerPath",
+        "title": "Flex: Configure Compiler Path",
+        "category": "Flex"
+      }
+    ],
+    "configuration": {
+      "title": "Flex",
+      "properties": {
+        "flex.compilerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Flex compiler executable"
+        },
+        "flex.strictVariableDeclarations": {
+          "type": "boolean",
+          "default": false,
+          "description": "When enabled, shows warnings for variables used without explicit declaration"
+        },
+        "flex.checkAI": {
+          "type": "boolean",
+          "default": false,
+          "description": "Check if AI features are enabled and properly configured"
+        },
+        "flex.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API key for accessing AI models"
+        },
+        "flex.model": {
+          "type": "string",
+          "default": "openai/gpt-4.1-mini",
+          "markdownDescription": "AI model to use for chat responses. You can search for available models in OpenRouter, or use the 'Flex Chat Bot: Select AI Model' command to see a list of models.\n\n[Browse models on OpenRouter](https://openrouter.ai/models)"
+        },
+        "flex.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Controls randomness of responses. Lower is more deterministic, higher is more creative."
+        }
+      }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "when": "editorLangId == flex",
+          "command": "flex.runFile",
+          "group": "navigation"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "flex",
+        "aliases": [
+          "Flex",
+          "flex"
+        ],
+        "extensions": [
+          ".lx",
+          ".fx",
+          ".flex"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flex",
+        "scopeName": "source.flex",
+        "path": "./syntaxes/flex.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "flex",
+        "path": "./snippets/flex.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "echo Compilation not needed - grammar only extension",
+    "watch": "echo Watch not needed - grammar only extension",
+    "test": "node ./test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^14.18.63",
+    "@types/vscode": "^1.75.0"
+  }
+}

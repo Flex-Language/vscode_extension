@@ -1,0 +1,67 @@
+# This is a test file for the Flex language extension
+# Let's try out all the features!
+
+# 1. Variable declarations with different types
+rakm count = 42
+kasr pi = 3.14159
+so2al isActive = sa7
+klma greeting = "Hello, Flex!"
+dorg numbers = [1, 2, 3, 4, 5]
+
+# 2. String interpolation
+etb3("The value of pi is {pi} and the count is {count}")
+
+# 3. If-else statements
+lw count > 0 {
+    et3("Count is positive")
+} aw count < 0 {
+    etb3("Count is negative")
+} gher {
+    etb3("Count is zero")
+}
+
+# 4. While loop
+rakm i = 5
+talama i > 0 {
+    etb3("Countdown: {i}")
+    i--
+}
+
+# 5. For loop
+karr j=0 l7d 3 {
+    etb3("Loop iteration {j}")
+}
+
+# 6. Functions
+sndo2 add(rakm a, rakm b) {
+    rg3 a + b
+}
+
+# 7. Using the function
+rakm result = add(count, 8)
+etb3("Result: {result}")
+
+# 8. List operations
+numbers.push(6)
+etb3("Updated list: {numbers}")
+numbers.pop()
+etb3("After pop: {numbers}")
+
+# 9. English syntax (mixed with Franco)
+if (isActive == true) {
+    print("Using English syntax for this line")
+}
+
+# 10. Boolean operations
+so2al combined = (count > 40) and (pi > 3)
+etb3("Combined condition: {combined}")
+
+# 11. Functions with English keywords
+function multiply(rakm x, rakm y) {
+    return x * y
+}
+
+# 12. Import statement (for demonstration)
+geep "math.lx"
+
+# End of test file 
