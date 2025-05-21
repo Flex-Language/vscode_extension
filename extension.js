@@ -944,11 +944,8 @@ async function runFlexFile() {
   terminal.show(true);
 
   // Clear terminal and run the Flex file
-  if (os.platform() === "win32") {
-    terminal.sendText("cls");
-  } else {
-    terminal.sendText("clear");
-  }
+  terminal.sendText("cls");
+
   // Check if AI integration is enabled and pass OPENROUTER_API_KEY if needed
   const aiEnabled = vscode.workspace
     .getConfiguration("flex")
@@ -958,14 +955,11 @@ async function runFlexFile() {
     .get("apiKey", "");
   if (aiEnabled && apiKey) {
     terminal.sendText(
-      `export OPENROUTER_API_KEY='${apiKey}'`
+      `$env:OPENROUTER_API_KEY="${apiKey}"`
     );
     // Clear terminal and run the Flex file
-    if (os.platform() === "win32") {
-      terminal.sendText("cls");
-    } else {
-      terminal.sendText("clear");
-    }
+    terminal.sendText("cls");
+  
     const flexModel = vscode.workspace
       .getConfiguration("flex")
       .get("model", "openai/gpt-4.1-mini");
@@ -977,11 +971,8 @@ async function runFlexFile() {
     }
   } else {
     // Clear terminal and run the Flex file
-    if (os.platform() === "win32") {
-      terminal.sendText("cls");
-    } else {
-      terminal.sendText("clear");
-    }
+    terminal.sendText("cls");
+
     if (compilerPath === "flex") {
       terminal.sendText(`flex "${filePath}"`);
     } else {
