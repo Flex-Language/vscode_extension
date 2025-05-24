@@ -975,6 +975,7 @@ async function runFlexFile() {
 
     if (compilerPath === "flex") {
       terminal.sendText(`flex "${filePath}"`);
+      return;
     } else {
       terminal.sendText(`"${compilerPath}" "${filePath}"`);
     }
