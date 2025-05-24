@@ -1,0 +1,3 @@
+//testing error explationation
+rakm x = "hello"
+print(x)
