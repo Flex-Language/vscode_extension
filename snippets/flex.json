@@ -1,15 +1,21 @@
 {
-  "If Statement": {
-    "prefix": ["if", "lw"],
+  "Franco If Statement": {
+    "prefix": [
+      "if",
+      "lw"
+    ],
     "body": [
       "lw ${1:condition} {",
       "\t$0",
       "}"
     ],
-    "description": "If statement"
+    "description": "Franco Arabic if statement"
   },
-  "If-Else Statement": {
-    "prefix": ["ifelse", "lwgher"],
+  "Franco If-Else Statement": {
+    "prefix": [
+      "ifelse",
+      "lwgher"
+    ],
     "body": [
       "lw ${1:condition} {",
       "\t$2",
@@ -17,10 +23,13 @@
       "\t$0",
       "}"
     ],
-    "description": "If-else statement"
+    "description": "Franco Arabic if-else statement"
   },
-  "If-Elif-Else Statement": {
-    "prefix": ["ifelifelse", "lwaw"],
+  "Franco If-Elif-Else Statement": {
+    "prefix": [
+      "ifelifelse",
+      "lwaw"
+    ],
     "body": [
       "lw ${1:condition1} {",
       "\t$2",
@@ -30,89 +39,13 @@
       "\t$0",
       "}"
     ],
-    "description": "If-elif-else statement"
-  },
-  "While Loop": {
-    "prefix": ["while", "talama"],
-    "body": [
-      "talama ${1:condition} {",
-      "\t$0",
-      "}"
-    ],
-    "description": "While loop"
-  },
-  "For Loop": {
-    "prefix": ["for", "karr"],
-    "body": [
-      "karr ${1:i}=${2:start} l7d ${3:end} {",
-      "\t$0",
-      "}"
-    ],
-    "description": "For loop"
-  },
-  "Function Definition": {
-    "prefix": ["function", "sndo2"],
-    "body": [
-      "sndo2 ${1:name}(${2:params}) {",
-      "\t$3",
-      "\trg3 ${4:result}",
-      "}"
-    ],
-    "description": "Function definition"
-  },
-  "Print Statement": {
-    "prefix": ["print", "etb3"],
-    "body": [
-      "etb3(\"${1:message}\")"
-    ],
-    "description": "Print statement"
-  },
-  "Formatted Print": {
-    "prefix": ["fprint", "formatprint"],
-    "body": [
-      "etb3(\"${1:message} {${2:variable}}\")"
-    ],
-    "description": "Formatted print statement"
-  },
-  "Input Statement": {
-    "prefix": ["input", "da5l"],
-    "body": [
-      "${1:variable} = da5l()"
-    ],
-    "description": "Input statement"
-  },
-  "Variable Declaration": {
-    "prefix": ["var", "variable"],
-    "body": [
-      "${1|rakm,kasr,so2al,klma,dorg,int,float,bool,string,list|} ${2:name} = ${3:value}"
-    ],
-    "description": "Variable declaration"
-  },
-  "Import Statement": {
-    "prefix": ["import", "geep"],
-    "body": [
-      "geep \"${1:path}\""
-    ],
-    "description": "Import statement"
-  },
-  "List Declaration": {
-    "prefix": ["list", "dorg"],
-    "body": [
-      "dorg ${1:name} = [${2:elements}]"
-    ],
-    "description": "List declaration"
-  },
-  "C-style For Loop": {
-    "prefix": ["cfor", "forloop"],
-    "body": [
-      "for (int ${1:i}=0; ${1:i} < ${2:limit}; ${1:i}++) {",
-      "\t$0",
-      "}"
-    ],
-    "description": "C-style for loop"
+    "description": "Franco Arabic if-elif-else statement"
   },
   "English If Statement": {
-    "prefix": ["engif", "ifstatement"],
+    "prefix": [
+      "engif",
+      "ifeng"
+    ],
     "body": [
       "if (${1:condition}) {",
       "\t$0",
@@ -120,8 +53,53 @@
     ],
     "description": "English style if statement"
   },
+  "English If-Else Statement": {
+    "prefix": [
+      "engifelse",
+      "ifelseeng"
+    ],
+    "body": [
+      "if (${1:condition}) {",
+      "\t$2",
+      "} else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "English style if-else statement"
+  },
+  "English If-Elif-Else Statement": {
+    "prefix": [
+      "engifelifelse",
+      "ifelifelseeng"
+    ],
+    "body": [
+      "if (${1:condition1}) {",
+      "\t$2",
+      "} elif (${3:condition2}) {",
+      "\t$4",
+      "} else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "English style if-elif-else statement"
+  },
+  "Franco While Loop": {
+    "prefix": [
+      "while",
+      "talama"
+    ],
+    "body": [
+      "talama ${1:condition} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Franco Arabic while loop"
+  },
   "English While Loop": {
-    "prefix": ["engwhile", "whileloop"],
+    "prefix": [
+      "engwhile",
+      "whileeng"
+    ],
     "body": [
       "while (${1:condition}) {",
       "\t$0",
@@ -129,14 +107,819 @@
     ],
     "description": "English style while loop"
   },
-  "English Function": {
-    "prefix": ["engfun", "function"],
+  "Franco For Loop": {
+    "prefix": [
+      "for",
+      "karr"
+    ],
     "body": [
-      "function ${1:name}(${2:params}) {",
+      "karr ${1:i}=${2:0} l7d ${3:10} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Franco Arabic for loop"
+  },
+  "Franco Safe Array Loop": {
+    "prefix": [
+      "safeloop",
+      "karrsafe"
+    ],
+    "body": [
+      "karr ${1:i}=0 l7d length(${2:array}) - 1 {",
+      "\t${3:// Safe array access: ${2:array}[${1:i}]}",
+      "\t$0",
+      "}"
+    ],
+    "description": "Franco for loop with safe array bounds (prevents out-of-bounds errors)"
+  },
+  "English For Loop": {
+    "prefix": [
+      "engfor",
+      "foreng"
+    ],
+    "body": [
+      "for(${1:i}=0; ${1:i}<${2:10}; ${1:i}++) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "English style for loop"
+  },
+  "Franco Function Definition": {
+    "prefix": [
+      "function",
+      "sndo2"
+    ],
+    "body": [
+      "sndo2 ${1:name}(${2:params}) {",
+      "\t$3",
+      "\trg3 ${4:result}",
+      "}"
+    ],
+    "description": "Franco Arabic function definition"
+  },
+  "English Function Definition": {
+    "prefix": [
+      "engfunction",
+      "fun"
+    ],
+    "body": [
+      "fun ${1:name}(${2:params}) {",
       "\t$3",
       "\treturn ${4:result}",
       "}"
     ],
-    "description": "English style function"
+    "description": "English style function definition"
+  },
+  "Function with Parameters": {
+    "prefix": [
+      "funcparams",
+      "sndo2params"
+    ],
+    "body": [
+      "sndo2 ${1:name}(${2|rakm,kasr,so2al,klma,dorg,int,float,bool,string,list|} ${3:param1}, ${4|rakm,kasr,so2al,klma,dorg,int,float,bool,string,list|} ${5:param2}) {",
+      "\t$6",
+      "\trg3 ${7:result}",
+      "}"
+    ],
+    "description": "Function with typed parameters"
+  },
+  "Franco Print Statement": {
+    "prefix": [
+      "print",
+      "etb3"
+    ],
+    "body": [
+      "etb3(\"${1:message}\")"
+    ],
+    "description": "Franco Arabic print statement"
+  },
+  "English Print Statement": {
+    "prefix": [
+      "engprint",
+      "printeng"
+    ],
+    "body": [
+      "print(\"${1:message}\")"
+    ],
+    "description": "English print statement"
+  },
+  "Formatted Print with Interpolation": {
+    "prefix": [
+      "fprint",
+      "formatprint"
+    ],
+    "body": [
+      "etb3(\"${1:message}: {${2:variable}}\")"
+    ],
+    "description": "Formatted print with string interpolation"
+  },
+  "Franco Input Statement": {
+    "prefix": [
+      "input",
+      "da5l"
+    ],
+    "body": [
+      "${1:variable} = da5l()"
+    ],
+    "description": "Franco Arabic input statement"
+  },
+  "English Input Statement": {
+    "prefix": [
+      "enginput",
+      "scan"
+    ],
+    "body": [
+      "${1:variable} = scan()"
+    ],
+    "description": "English input statement"
+  },
+  "Typed Input": {
+    "prefix": [
+      "typedinput",
+      "inputtyped"
+    ],
+    "body": [
+      "${1|rakm,kasr,so2al,klma,int,float,bool,string|} ${2:variable} = da5l()"
+    ],
+    "description": "Typed input declaration"
+  },
+  "Variable Declaration": {
+    "prefix": [
+      "var",
+      "variable"
+    ],
+    "body": [
+      "${1|rakm,kasr,so2al,klma,dorg,int,float,bool,string,list|} ${2:name} = ${3:value}"
+    ],
+    "description": "Variable declaration with type"
+  },
+  "Franco Variable Declaration": {
+    "prefix": [
+      "francovar",
+      "varfranco"
+    ],
+    "body": [
+      "${1|rakm,kasr,so2al,klma,dorg|} ${2:name} = ${3:value}"
+    ],
+    "description": "Franco Arabic variable declaration"
+  },
+  "English Variable Declaration": {
+    "prefix": [
+      "engvar",
+      "vareng"
+    ],
+    "body": [
+      "${1|int,float,bool,string,list|} ${2:name} = ${3:value}"
+    ],
+    "description": "English variable declaration"
+  },
+  "List Declaration": {
+    "prefix": [
+      "list",
+      "dorg"
+    ],
+    "body": [
+      "dorg ${1:name} = [${2:elements}]"
+    ],
+    "description": "Franco list declaration"
+  },
+  "English List Declaration": {
+    "prefix": [
+      "englist",
+      "listeng"
+    ],
+    "body": [
+      "list ${1:name} = [${2:elements}]"
+    ],
+    "description": "English list declaration"
+  },
+  "List with Methods": {
+    "prefix": [
+      "listmethods",
+      "listops"
+    ],
+    "body": [
+      "dorg ${1:list} = [${2:elements}]",
+      "${1:list}.push(${3:item})",
+      "${1:list}.pop()",
+      "${1:list}.remove(${4:value})"
+    ],
+    "description": "List with common methods"
+  },
+  "Franco List Methods": {
+    "prefix": [
+      "francolist",
+      "dorggbethods"
+    ],
+    "body": [
+      "dorg ${1:list} = [${2:elements}]",
+      "${1:list}.d7af(${3:item})    # Add item",
+      "${1:list}.shyl(${4:value})   # Remove item",
+      "${1:list}.2leb()             # Reverse list",
+      "${1:list}.rtb()              # Sort list"
+    ],
+    "description": "Franco Arabic list methods"
+  },
+  "Franco Import Statement": {
+    "prefix": [
+      "import",
+      "geep"
+    ],
+    "body": [
+      "geep \"${1:path}\""
+    ],
+    "description": "Franco Arabic import statement"
+  },
+  "English Import Statement": {
+    "prefix": [
+      "engimport",
+      "importeng"
+    ],
+    "body": [
+      "import \"${1:path}\""
+    ],
+    "description": "English import statement"
+  },
+  "Safe Division": {
+    "prefix": [
+      "safediv",
+      "divisioncheck"
+    ],
+    "body": [
+      "lw ${2:divisor} != 0 {",
+      "\t${1:result} = ${3:dividend} / ${2:divisor}",
+      "\tprint(\"Result: {${1:result}}\")",
+      "} gher {",
+      "\tprint(\"Error: Division by zero!\")",
+      "}"
+    ],
+    "description": "Safe division with zero check"
+  },
+  "Safe Modulo": {
+    "prefix": [
+      "safemod",
+      "modulocheck"
+    ],
+    "body": [
+      "lw ${2:divisor} != 0 {",
+      "\t${1:remainder} = ${3:dividend} % ${2:divisor}",
+      "\tprint(\"Remainder: {${1:remainder}}\")",
+      "} gher {",
+      "\tprint(\"Error: Modulo by zero!\")",
+      "}"
+    ],
+    "description": "Safe modulo operation with zero check"
+  },
+  "Even/Odd Check": {
+    "prefix": [
+      "evenodd",
+      "modulocheck"
+    ],
+    "body": [
+      "lw ${1:number} % 2 == 0 {",
+      "\tprint(\"{${1:number}} is even\")",
+      "} gher {",
+      "\tprint(\"{${1:number}} is odd\")",
+      "}"
+    ],
+    "description": "Check if number is even or odd using modulo"
+  },
+  "Input Validation": {
+    "prefix": [
+      "validateinput",
+      "inputval"
+    ],
+    "body": [
+      "print(\"${1:Enter value}: \")",
+      "${2:value} = da5l()",
+      "lw length(${2:value}) > 0 {",
+      "\tprint(\"Valid input: {${2:value}}\")",
+      "} gher {",
+      "\tprint(\"Error: Input cannot be empty\")",
+      "}"
+    ],
+    "description": "Input validation pattern"
+  },
+  "Safe List Access": {
+    "prefix": [
+      "safeaccess",
+      "listcheck"
+    ],
+    "body": [
+      "lw ${2:index} >= 0 and ${2:index} < length(${1:list}) {",
+      "\t${3:element} = ${1:list}[${2:index}]",
+      "\tprint(\"Element: {${3:element}}\")",
+      "} gher {",
+      "\tprint(\"Error: Index out of bounds\")",
+      "}"
+    ],
+    "description": "Safe list element access with bounds checking"
+  },
+  "File Read Operation": {
+    "prefix": [
+      "readfile",
+      "fileread"
+    ],
+    "body": [
+      "lw fileExists(\"${1:filename}\") {",
+      "\t${2:content} = readFile(\"${1:filename}\")",
+      "\tprint(${2:content})",
+      "} gher {",
+      "\tprint(\"File not found: ${1:filename}\")",
+      "}"
+    ],
+    "description": "Safe file read operation"
+  },
+  "Franco File Read": {
+    "prefix": [
+      "francofile",
+      "qra2file"
+    ],
+    "body": [
+      "lw mlafM3jod(\"${1:filename}\") {",
+      "\t${2:content} = qra2File(\"${1:filename}\")",
+      "\tetb3(${2:content})",
+      "} gher {",
+      "\tetb3(\"File not found: ${1:filename}\")",
+      "}"
+    ],
+    "description": "Franco Arabic file read operation"
+  },
+  "File Write Operation": {
+    "prefix": [
+      "writefile",
+      "filewrite"
+    ],
+    "body": [
+      "klma ${1:content} = \"${2:text content}\"",
+      "writeFile(\"${3:filename}\", ${1:content})",
+      "print(\"File written successfully\")"
+    ],
+    "description": "File write operation"
+  },
+  "Franco File Write": {
+    "prefix": [
+      "francowrite",
+      "katbfile"
+    ],
+    "body": [
+      "klma ${1:content} = \"${2:text content}\"",
+      "katbFile(\"${3:filename}\", ${1:content})",
+      "etb3(\"File written successfully\")"
+    ],
+    "description": "Franco Arabic file write operation"
+  },
+  "File Append Operation": {
+    "prefix": [
+      "appendfile",
+      "fileappend"
+    ],
+    "body": [
+      "klma ${1:newContent} = \"${2:additional content}\"",
+      "appendFile(\"${3:filename}\", ${1:newContent})",
+      "print(\"Content appended successfully\")"
+    ],
+    "description": "File append operation"
+  },
+  "Franco File Append": {
+    "prefix": [
+      "francoappend",
+      "zydfile"
+    ],
+    "body": [
+      "klma ${1:newContent} = \"${2:additional content}\"",
+      "zydFile(\"${3:filename}\", ${1:newContent})",
+      "etb3(\"Content appended successfully\")"
+    ],
+    "description": "Franco Arabic file append operation"
+  },
+  "File Delete Operation": {
+    "prefix": [
+      "deletefile",
+      "filedelete"
+    ],
+    "body": [
+      "lw fileExists(\"${1:filename}\") {",
+      "\tdeleteFile(\"${1:filename}\")",
+      "\tprint(\"File deleted: ${1:filename}\")",
+      "} gher {",
+      "\tprint(\"File not found: ${1:filename}\")",
+      "}"
+    ],
+    "description": "Safe file delete operation"
+  },
+  "Franco File Delete": {
+    "prefix": [
+      "francodelete",
+      "m7yfile"
+    ],
+    "body": [
+      "lw mlafM3jod(\"${1:filename}\") {",
+      "\tm7yFile(\"${1:filename}\")",
+      "\tetb3(\"File deleted: ${1:filename}\")",
+      "} gher {",
+      "\tetb3(\"File not found: ${1:filename}\")",
+      "}"
+    ],
+    "description": "Franco Arabic file delete operation"
+  },
+  "Error Recovery Pattern": {
+    "prefix": [
+      "errorrecovery",
+      "trypattern"
+    ],
+    "body": [
+      "sndo2 safe${1:Operation}(${2:params}) {",
+      "\tlw ${3:condition} {",
+      "\t\t${4:// Success path}",
+      "\t\trg3 ${5:result}",
+      "\t} gher {",
+      "\t\tprint(\"Error: ${6:error message}\")",
+      "\t\trg3 ${7:default_value}",
+      "\t}",
+      "}"
+    ],
+    "description": "Error recovery function pattern"
+  },
+  "Menu System": {
+    "prefix": [
+      "menu",
+      "menusystem"
+    ],
+    "body": [
+      "so2al running = sa7",
+      "talama running {",
+      "\tetb3(\"\\n=== Menu ===\")",
+      "\tprint(\"1. ${1:Option 1}\")",
+      "\tprint(\"2. ${2:Option 2}\")",
+      "\tprint(\"3. Exit\")",
+      "\tprint(\"Choose (1-3): \")",
+      "\t",
+      "\tchoice = scan()",
+      "\tlw choice == \"1\" {",
+      "\t\t${3:// Option 1 code}",
+      "\t} aw choice == \"2\" {",
+      "\t\t${4:// Option 2 code}",
+      "\t} aw choice == \"3\" {",
+      "\t\trunning = ghalt",
+      "\t} gher {",
+      "\t\tprint(\"Invalid choice\")",
+      "\t}",
+      "}"
+    ],
+    "description": "Interactive menu system"
+  },
+  "Calculator Pattern": {
+    "prefix": [
+      "calculator",
+      "calc"
+    ],
+    "body": [
+      "print(\"Enter first number:\")",
+      "rakm num1 = scan()",
+      "print(\"Enter operator (+, -, *, /, %):\")",
+      "operator = scan()",
+      "print(\"Enter second number:\")",
+      "rakm num2 = scan()",
+      "",
+      "lw operator == \"+\" {",
+      "\tresult = num1 + num2",
+      "} aw operator == \"-\" {",
+      "\tresult = num1 - num2",
+      "} aw operator == \"*\" {",
+      "\tresult = num1 * num2",
+      "} aw operator == \"/\" {",
+      "\tlw num2 != 0 {",
+      "\t\tresult = num1 / num2",
+      "\t} gher {",
+      "\t\tprint(\"Error: Division by zero!\")",
+      "\t}",
+      "} aw operator == \"%\" {",
+      "\tlw num2 != 0 {",
+      "\t\tresult = num1 % num2",
+      "\t} gher {",
+      "\t\tprint(\"Error: Modulo by zero!\")",
+      "\t}",
+      "} gher {",
+      "\tprint(\"Invalid operator!\")",
+      "}",
+      "",
+      "print(\"Result: {result}\")"
+    ],
+    "description": "Simple calculator with error handling"
+  },
+  "Array Processing": {
+    "prefix": [
+      "arrayprocess",
+      "listprocess"
+    ],
+    "body": [
+      "dorg ${1:items} = [${2:1, 2, 3, 4, 5}]",
+      "",
+      "# Safe iteration with Franco loop",
+      "karr i=0 l7d length(${1:items}) - 1 {",
+      "\tprint(\"Item {i}: {${1:items}[i]}\")",
+      "\t${3:// Process ${1:items}[i]}",
+      "}"
+    ],
+    "description": "Safe array processing with Franco loop"
+  },
+  "String Operations": {
+    "prefix": [
+      "stringops",
+      "strprocess"
+    ],
+    "body": [
+      "klma ${1:text} = \"${2:Hello, World!}\"",
+      "",
+      "# String operations",
+      "print(\"Original: {${1:text}}\")",
+      "print(\"Length: {length(${1:text})}\")",
+      "print(\"Uppercase: {upper(${1:text})}\")",
+      "print(\"Lowercase: {lower(${1:text})}\")",
+      "print(\"Trimmed: {trim(${1:text})}\")",
+      "",
+      "# String contains check",
+      "lw contains(${1:text}, \"${3:World}\") {",
+      "\tprint(\"Text contains '${3:World}'\")",
+      "}"
+    ],
+    "description": "String manipulation operations"
+  },
+  "Franco String Operations": {
+    "prefix": [
+      "francostringops",
+      "strfranco"
+    ],
+    "body": [
+      "klma ${1:text} = \"${2:Hello, World!}\"",
+      "",
+      "# Franco string operations",
+      "etb3(\"Original: {${1:text}}\")",
+      "etb3(\"Length: {7ajm(${1:text})}\")",
+      "etb3(\"Uppercase: {kbr(${1:text})}\")",
+      "etb3(\"Lowercase: {sg7r(${1:text})}\")",
+      "etb3(\"Trimmed: {n7f(${1:text})}\")",
+      "",
+      "# Franco string contains check",
+      "lw fy(${1:text}, \"${3:World}\") {",
+      "\tetb3(\"Text contains '${3:World}'\")",
+      "}"
+    ],
+    "description": "Franco Arabic string manipulation"
+  },
+  "Math Operations": {
+    "prefix": [
+      "mathops",
+      "mathematics"
+    ],
+    "body": [
+      "rakm ${1:number} = ${2:16}",
+      "",
+      "# Mathematical operations",
+      "print(\"Square root: {sqrt(${1:number})}\")",
+      "print(\"Power of 2: {power(${1:number}, 2)}\")",
+      "print(\"Absolute value: {abs(${1:number})}\")",
+      "print(\"Rounded: {round(${1:number})}\")",
+      "print(\"Floor: {floor(${1:number})}\")",
+      "print(\"Ceiling: {ceil(${1:number})}\")",
+      "print(\"Random: {random()}\")",
+      "",
+      "# Min/Max operations",
+      "a = ${3:5}",
+      "b = ${4:10}",
+      "print(\"Min: {min(a, b)}\")",
+      "print(\"Max: {max(a, b)}\")"
+    ],
+    "description": "Mathematical operations and functions"
+  },
+  "Franco Math Operations": {
+    "prefix": [
+      "francomath",
+      "mathfranco"
+    ],
+    "body": [
+      "rakm ${1:number} = ${2:16}",
+      "",
+      "# Franco mathematical operations",
+      "etb3(\"Square root: {jzr(${1:number})}\")",
+      "etb3(\"Power of 2: {2ss(${1:number}, 2)}\")",
+      "etb3(\"Absolute value: {mtl2(${1:number})}\")",
+      "etb3(\"Rounded: {2rb(${1:number})}\")",
+      "",
+      "# Franco Min/Max operations",
+      "a = ${3:5}",
+      "b = ${4:10}",
+      "etb3(\"Min: {asgar(a, b)}\")",
+      "etb3(\"Max: {akbar(a, b)}\")"
+    ],
+    "description": "Franco Arabic mathematical operations"
+  },
+  "Type Checking": {
+    "prefix": [
+      "typecheck",
+      "validation"
+    ],
+    "body": [
+      "# Type checking patterns",
+      "lw isNumber(${1:value}) {",
+      "\tprint(\"${1:value} is a number\")",
+      "} aw isString(${1:value}) {",
+      "\tprint(\"${1:value} is a string\")",
+      "} aw isList(${1:value}) {",
+      "\tprint(\"${1:value} is a list\")",
+      "} aw isBool(${1:value}) {",
+      "\tprint(\"${1:value} is a boolean\")",
+      "} gher {",
+      "\tprint(\"Unknown type\")",
+      "}"
+    ],
+    "description": "Type checking and validation"
+  },
+  "Franco Type Checking": {
+    "prefix": [
+      "francotype",
+      "typefranco"
+    ],
+    "body": [
+      "# Franco type checking patterns",
+      "lw rakm?(${1:value}) {",
+      "\tetb3(\"${1:value} is a number\")",
+      "} aw klma?(${1:value}) {",
+      "\tetb3(\"${1:value} is a string\")",
+      "} aw dorg?(${1:value}) {",
+      "\tetb3(\"${1:value} is a list\")",
+      "} aw so2al?(${1:value}) {",
+      "\tetb3(\"${1:value} is a boolean\")",
+      "} gher {",
+      "\tetb3(\"Unknown type\")",
+      "}"
+    ],
+    "description": "Franco Arabic type checking"
+  },
+  "System Information": {
+    "prefix": [
+      "sysinfo",
+      "systeminfo"
+    ],
+    "body": [
+      "# System information",
+      "print(\"System type: {systemType()}\")",
+      "print(\"Current time: {getCurrentTime()}\")",
+      "",
+      "# File system operations",
+      "lw fileExists(\"${1:config.txt}\") {",
+      "\tprint(\"Config file found\")",
+      "\tfiles = listFiles(\".\")  # List current directory",
+      "\tprint(\"Files: {files}\")",
+      "} gher {",
+      "\tprint(\"Config file missing\")",
+      "}"
+    ],
+    "description": "System information and file operations"
+  },
+  "Franco System Info": {
+    "prefix": [
+      "francosys",
+      "sysfranco"
+    ],
+    "body": [
+      "# Franco system information",
+      "etb3(\"System type: {no3Nizam()}\")",
+      "etb3(\"Current time: {wa2tHali()}\")",
+      "",
+      "# Franco file operations",
+      "lw mlafM3jod(\"${1:config.txt}\") {",
+      "\tetb3(\"Config file found\")",
+      "} gher {",
+      "\tetb3(\"Config file missing\")",
+      "}"
+    ],
+    "description": "Franco Arabic system information"
+  },
+  "Performance Pattern": {
+    "prefix": [
+      "performance",
+      "optimize"
+    ],
+    "body": [
+      "# Performance-optimized pattern",
+      "sndo2 processLargeData(dorg data) {",
+      "\trakm total = length(data)",
+      "\trakm chunkSize = 1000",
+      "\t",
+      "\t# Process in chunks to avoid memory issues",
+      "\tfor(start=0; start<total; start=start+chunkSize) {",
+      "\t\tend = start + chunkSize",
+      "\t\tlw end > total { end = total }",
+      "\t\t",
+      "\t\t# Process current chunk",
+      "\t\tfor(i=start; i<end; i++) {",
+      "\t\t\t${1:// Process data[i]}",
+      "\t\t}",
+      "\t\t",
+      "\t\tprint(\"Processed {end}/{total} items\")",
+      "\t}",
+      "}"
+    ],
+    "description": "Performance-optimized chunked processing pattern"
+  },
+  "Break Statement": {
+    "prefix": [
+      "break",
+      "w2f"
+    ],
+    "body": [
+      "lw ${1:condition} {",
+      "\tw2f",
+      "}"
+    ],
+    "description": "Franco break statement"
+  },
+  "English Break Statement": {
+    "prefix": [
+      "engbreak",
+      "breakeng"
+    ],
+    "body": [
+      "if (${1:condition}) {",
+      "\tbreak",
+      "}"
+    ],
+    "description": "English break statement"
+  },
+  "Sleep/Delay Pattern": {
+    "prefix": [
+      "sleep",
+      "delay"
+    ],
+    "body": [
+      "print(\"Starting task...\")",
+      "sleep(${1:1000})  # Wait 1 second",
+      "print(\"Task completed!\")"
+    ],
+    "description": "Sleep/delay pattern"
+  },
+  "Franco Sleep Pattern": {
+    "prefix": [
+      "francosleep",
+      "nam"
+    ],
+    "body": [
+      "etb3(\"Starting task...\")",
+      "nam(${1:1000})  # Wait 1 second",
+      "etb3(\"Task completed!\")"
+    ],
+    "description": "Franco Arabic sleep pattern"
+  },
+  "Comments Block": {
+    "prefix": [
+      "comment",
+      "comments"
+    ],
+    "body": [
+      "# ${1:Single line comment}",
+      "",
+      "'''",
+      "${2:Multi-line comment}",
+      "${3:Documentation block}",
+      "'''"
+    ],
+    "description": "Comment examples"
+  },
+  "Todo List Template": {
+    "prefix": [
+      "todotemplate",
+      "todolist"
+    ],
+    "body": [
+      "# Todo List Manager",
+      "dorg tasks = []",
+      "so2al running = sa7",
+      "",
+      "sndo2 addTask() {",
+      "\tetb3(\"Enter new task:\")",
+      "\ttask = da5l()",
+      "\ttasks.push(task)",
+      "\tprint(\"Task added!\")",
+      "}",
+      "",
+      "sndo2 showTasks() {",
+      "\tlw length(tasks) == 0 {",
+      "\t\tetb3(\"No tasks found\")",
+      "\t} gher {",
+      "\t\tkarr i=0 l7d length(tasks) - 1 {",
+      "\t\t\tetb3(\"{i+1}. {tasks[i]}\")",
+      "\t\t}",
+      "\t}",
+      "}",
+      "",
+      "# Main loop",
+      "talama running {",
+      "\t# Menu implementation here",
+      "\t$0",
+      "}"
+    ],
+    "description": "Complete todo list application template"
   }
-} 
+}

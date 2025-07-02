@@ -35,13 +35,12 @@
     "franco-arabic",
     "multi-syntax",
     "beginners",
-    "AI",
     "code assistance"
   ],
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -55,8 +54,37 @@
         "category": "Flex"
       },
       {
+        "command": "flex.testCompiler",
+        "title": "Flex: Test Compiler Detection (Debug)",
+        "category": "Flex"
+      },
+      {
         "command": "flex.configureCompilerPath",
         "title": "Flex: Configure Compiler Path",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.runFileWithAI",
+        "title": "Run Flex File with AI",
+        "icon": "$(sparkle)",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.refreshOpenRouterModels",
+        "title": "Flex: Refresh OpenRouter Models",
+        "icon": "$(refresh)",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.selectAIModel",
+        "title": "Flex: Select AI Model",
+        "icon": "$(settings-gear)",
+        "category": "Flex"
+      },
+      {
+        "command": "flex.openOpenRouterSettings",
+        "title": "Flex: Open OpenRouter API Key Settings",
+        "icon": "$(link-external)",
         "category": "Flex"
       }
     ],
@@ -71,37 +99,139 @@
         "flex.strictVariableDeclarations": {
           "type": "boolean",
           "default": false,
-          "description": "When enabled, shows warnings for variables used without explicit declaration"
+          "description": "When enabled, shows warnings for variables used without explicit declaration (requires language server restart)."
         },
-        "flex.checkAI": {
+        "flex.enableAI": {
           "type": "boolean",
           "default": false,
-          "description": "Check if AI features are enabled and properly configured"
+          "description": "Enables the AI-powered 'Run Flex File with AI' command (✨ icon).",
+          "order": 1
         },
-        "flex.apiKey": {
+        "flex.aiModel": {
+          "type": "string",
+          "default": "openai/gpt-4o-mini",
+          "description": "Select an AI model from 318 available OpenRouter models. Popular models are shown first.",
+          "enum": [
+            "default",
+            "custom",
+            "openai/gpt-4o-mini",
+            "openai/gpt-4o",
+            "anthropic/claude-3.5-sonnet",
+            "meta-llama/llama-3.3-70b-instruct",
+            "anthropic/claude-3-haiku",
+            "microsoft/wizardlm-2-8x22b",
+            "cohere/command-r-plus",
+            "anthropic/claude-3-opus",
+            "meta-llama/llama-3-8b-instruct",
+            "meta-llama/llama-3-70b-instruct",
+            "google/gemini-flash-1.5",
+            "anthropic/claude-3-sonnet",
+            "perplexity/llama-3.1-sonar-large-128k-online",
+            "anthropic/claude-opus-4",
+            "anthropic/claude-sonnet-4",
+            "baidu/ernie-4.5-300b-a47b",
+            "openrouter/cypher-alpha:free",
+            "deepseek/deepseek-r1-0528-qwen3-8b",
+            "deepseek/deepseek-r1-0528-qwen3-8b:free",
+            "deepseek/deepseek-r1-0528",
+            "deepseek/deepseek-r1-0528:free",
+            "deepseek/deepseek-r1-distill-qwen-7b",
+            "google/gemini-2.5-flash",
+            "google/gemini-2.5-flash-lite-preview-06-17",
+            "google/gemini-2.5-pro",
+            "google/gemini-2.5-pro-preview",
+            "inception/mercury",
+            "moonshotai/kimi-dev-72b:free",
+            "minimax/minimax-m1",
+            "mistralai/devstral-small",
+            "mistralai/devstral-small:free",
+            "mistralai/magistral-medium-2506",
+            "mistralai/magistral-medium-2506:thinking",
+            "mistralai/magistral-small-2506",
+            "mistralai/mistral-small-3.2-24b-instruct",
+            "mistralai/mistral-small-3.2-24b-instruct:free",
+            "morph/morph-v2",
+            "openai/o3-pro",
+            "sarvamai/sarvam-m:free",
+            "thedrummer/anubis-70b-v1.1",
+            "thedrummer/valkyrie-49b-v1",
+            "x-ai/grok-3",
+            "x-ai/grok-3-mini"
+          ],
+          "enumDescriptions": [
+            "Use the Flex compiler's built-in default AI model",
+            "Use a custom model specified in the 'flex.customAIModel' setting",
+            "OpenAI: GPT-4o-mini - GPT-4o mini is OpenAI's newest model after [GPT-4 Omni](/models/openai/gpt-4o), supporting both text and image inputs with text outputs.\n\nAs their most advanced small model, it is many multiples more affordable than other recent frontier models, and more than 60% cheaper than [GPT-3.5 Turbo](/models/openai/gpt-3.5-turbo). It maintains SOTA intelligence, while being significantly more cost-effective.\n\nGPT-4o mini achieves an 82% score on MMLU and presently ranks higher than GPT-4 on chat preferences [common leaderboards](https://arena.lmsys.org/).\n\nCheck out the [launch announcement](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/) to learn more.\n\n#multimodal ($0.15/$0.60 per 1M tokens)",
+            "OpenAI: GPT-4o - GPT-4o (\"o\" for \"omni\") is OpenAI's latest AI model, supporting both text and image inputs with text outputs. It maintains the intelligence level of [GPT-4 Turbo](/models/openai/gpt-4-turbo) while being twice as fast and 50% more cost-effective. GPT-4o also offers improved performance in processing non-English languages and enhanced visual capabilities.\n\nFor benchmarking against other models, it was briefly called [\"im-also-a-good-gpt2-chatbot\"](https://twitter.com/LiamFedus/status/1790064963966370209)\n\n#multimodal ($2.50/$10.00 per 1M tokens)",
+            "Anthropic: Claude 3.5 Sonnet - New Claude 3.5 Sonnet delivers better-than-Opus capabilities, faster-than-Sonnet speeds, at the same Sonnet prices. Sonnet is particularly good at:\n\n- Coding: Scores ~49% on SWE-Bench Verified, higher than the last best score, and without any fancy prompt scaffolding\n- Data science: Augments human data science expertise; navigates unstructured data while using multiple tools for insights\n- Visual processing: excelling at interpreting charts, graphs, and images, accurately transcribing text to derive insights beyond just the text alone\n- Agentic tasks: exceptional tool use, making it great at agentic tasks (i.e. complex, multi-step problem solving tasks that require engaging with other systems)\n\n#multimodal ($3.00/$15.00 per 1M tokens)",
+            "Meta: Llama 3.3 70B Instruct - The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.\n\nSupported languages: English, German, French, Italian, Portuguese, Hindi, Spanish, and Thai.\n\n[Model Card](https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/MODEL_CARD.md) ($0.04/$0.12 per 1M tokens)",
+            "Anthropic: Claude 3 Haiku - Claude 3 Haiku is Anthropic's fastest and most compact model for\nnear-instant responsiveness. Quick and accurate targeted performance.\n\nSee the launch announcement and benchmark results [here](https://www.anthropic.com/news/claude-3-haiku)\n\n#multimodal ($0.25/$1.25 per 1M tokens)",
+            "WizardLM-2 8x22B - WizardLM-2 8x22B is Microsoft AI's most advanced Wizard model. It demonstrates highly competitive performance compared to leading proprietary models, and it consistently outperforms all existing state-of-the-art opensource models.\n\nIt is an instruct finetune of [Mixtral 8x22B](/models/mistralai/mixtral-8x22b).\n\nTo read more about the model release, [click here](https://wizardlm.github.io/WizardLM2/).\n\n#moe ($0.48/$0.48 per 1M tokens)",
+            "Cohere: Command R+ - Command R+ is a new, 104B-parameter LLM from Cohere. It's useful for roleplay, general consumer usecases, and Retrieval Augmented Generation (RAG).\n\nIt offers multilingual support for ten key languages to facilitate global business operations. See benchmarks and the launch post [here](https://txt.cohere.com/command-r-plus-microsoft-azure/).\n\nUse of this model is subject to Cohere's [Usage Policy](https://docs.cohere.com/docs/usage-policy) and [SaaS Agreement](https://cohere.com/saas-agreement). ($3.00/$15.00 per 1M tokens)",
+            "Anthropic: Claude 3 Opus - Claude 3 Opus is Anthropic's most powerful model for highly complex tasks. It boasts top-level performance, intelligence, fluency, and understanding.\n\nSee the launch announcement and benchmark results [here](https://www.anthropic.com/news/claude-3-family)\n\n#multimodal ($15.00/$75.00 per 1M tokens)",
+            "Meta: Llama 3 8B Instruct - Meta's latest class of model (Llama 3) launched with a variety of sizes & flavors. This 8B instruct-tuned version was optimized for high quality dialogue usecases.\n\nIt has demonstrated strong performance compared to leading closed-source models in human evaluations.\n\nTo read more about the model release, [click here](https://ai.meta.com/blog/meta-llama-3/). Usage of this model is subject to [Meta's Acceptable Use Policy](https://llama.meta.com/llama3/use-policy/). ($0.03/$0.06 per 1M tokens)",
+            "Meta: Llama 3 70B Instruct - Meta's latest class of model (Llama 3) launched with a variety of sizes & flavors. This 70B instruct-tuned version was optimized for high quality dialogue usecases.\n\nIt has demonstrated strong performance compared to leading closed-source models in human evaluations.\n\nTo read more about the model release, [click here](https://ai.meta.com/blog/meta-llama-3/). Usage of this model is subject to [Meta's Acceptable Use Policy](https://llama.meta.com/llama3/use-policy/). ($0.30/$0.40 per 1M tokens)",
+            "Google: Gemini 1.5 Flash  - Gemini 1.5 Flash is a foundation model that performs well at a variety of multimodal tasks such as visual understanding, classification, summarization, and creating content from image, audio and video. It's adept at processing visual and text inputs such as photographs, documents, infographics, and screenshots.\n\nGemini 1.5 Flash is designed for high-volume, high-frequency tasks where cost and latency matter. On most common tasks, Flash achieves comparable quality to other Gemini Pro models at a significantly reduced cost. Flash is well-suited for applications like chat assistants and on-demand content generation where speed and scale matter.\n\nUsage of Gemini is subject to Google's [Gemini Terms of Use](https://ai.google.dev/terms).\n\n#multimodal ($0.07/$0.30 per 1M tokens)",
+            "Anthropic: Claude 3 Sonnet - Claude 3 Sonnet is an ideal balance of intelligence and speed for enterprise workloads. Maximum utility at a lower price, dependable, balanced for scaled deployments.\n\nSee the launch announcement and benchmark results [here](https://www.anthropic.com/news/claude-3-family)\n\n#multimodal ($3.00/$15.00 per 1M tokens)",
+            "Perplexity: Llama 3.1 Sonar 70B Online - Llama 3.1 Sonar is Perplexity's latest model family. It surpasses their earlier Sonar models in cost-efficiency, speed, and performance.\n\nThis is the online version of the [offline chat model](/models/perplexity/llama-3.1-sonar-large-128k-chat). It is focused on delivering helpful, up-to-date, and factual responses. #online ($1.00/$1.00 per 1M tokens)",
+            "Anthropic: Claude Opus 4 - Claude Opus 4 is benchmarked as the world’s best coding model, at time of release, bringing sustained performance on complex, long-running tasks and agent workflows. It sets new benchmarks in software engineering, achieving leading results on SWE-bench (72.5%) and Terminal-bench (43.2%). Opus 4 supports extended, agentic workflows, handling thousands of task steps continuously for hours without degradation. \n\nRead more at the [blog post here](https://www.anthropic.com/news/claude-4) ($15.00/$75.00 per 1M tokens)",
+            "Anthropic: Claude Sonnet 4 - Claude Sonnet 4 significantly enhances the capabilities of its predecessor, Sonnet 3.7, excelling in both coding and reasoning tasks with improved precision and controllability. Achieving state-of-the-art performance on SWE-bench (72.7%), Sonnet 4 balances capability and computational efficiency, making it suitable for a broad range of applications from routine coding tasks to complex software development projects. Key enhancements include improved autonomous codebase navigation, reduced error rates in agent-driven workflows, and increased reliability in following intricate instructions. Sonnet 4 is optimized for practical everyday use, providing advanced reasoning capabilities while maintaining efficiency and responsiveness in diverse internal and external scenarios.\n\nRead more at the [blog post here](https://www.anthropic.com/news/claude-4) ($3.00/$15.00 per 1M tokens)",
+            "Baidu: ERNIE 4.5 300B A47B  - ERNIE-4.5-300B-A47B is a 300B parameter Mixture-of-Experts (MoE) language model developed by Baidu as part of the ERNIE 4.5 series. It activates 47B parameters per token and supports text generation in both English and Chinese. Optimized for high-throughput inference and efficient scaling, it uses a heterogeneous MoE structure with advanced routing and quantization strategies, including FP8 and 2-bit formats. This version is fine-tuned for language-only tasks and supports reasoning, tool parameters, and extended context lengths up to 131k tokens. Suitable for general-purpose LLM applications with high reasoning and throughput demands. ($0.30/$1.00 per 1M tokens)",
+            "Cypher Alpha (free) - This is a cloaked model provided to the community to gather feedback. It's an all-purpose model supporting real-world, long-context tasks including code generation.\n\nNote: All prompts and completions for this model are logged by the provider and may be used to improve the model and other products and services. You remain responsible for any required end user notices and consents and for ensuring that no personal, confidential, or otherwise sensitive information, including data from individuals under the age of 18, is submitted. ($0.00/$0.00 per 1M tokens)",
+            "DeepSeek: Deepseek R1 0528 Qwen3 8B - DeepSeek-R1-0528 is a lightly upgraded release of DeepSeek R1 that taps more compute and smarter post-training tricks, pushing its reasoning and inference to the brink of flagship models like O3 and Gemini 2.5 Pro.\nIt now tops math, programming, and logic leaderboards, showcasing a step-change in depth-of-thought.\nThe distilled variant, DeepSeek-R1-0528-Qwen3-8B, transfers this chain-of-thought into an 8 B-parameter form, beating standard Qwen3 8B by +10 pp and tying the 235 B “thinking” giant on AIME 2024. ($0.01/$0.02 per 1M tokens)",
+            "DeepSeek: Deepseek R1 0528 Qwen3 8B (free) - DeepSeek-R1-0528 is a lightly upgraded release of DeepSeek R1 that taps more compute and smarter post-training tricks, pushing its reasoning and inference to the brink of flagship models like O3 and Gemini 2.5 Pro.\nIt now tops math, programming, and logic leaderboards, showcasing a step-change in depth-of-thought.\nThe distilled variant, DeepSeek-R1-0528-Qwen3-8B, transfers this chain-of-thought into an 8 B-parameter form, beating standard Qwen3 8B by +10 pp and tying the 235 B “thinking” giant on AIME 2024. ($0.00/$0.00 per 1M tokens)",
+            "DeepSeek: R1 0528 - May 28th update to the [original DeepSeek R1](/deepseek/deepseek-r1) Performance on par with [OpenAI o1](/openai/o1), but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active in an inference pass.\n\nFully open-source model. ($0.50/$2.15 per 1M tokens)",
+            "DeepSeek: R1 0528 (free) - May 28th update to the [original DeepSeek R1](/deepseek/deepseek-r1) Performance on par with [OpenAI o1](/openai/o1), but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active in an inference pass.\n\nFully open-source model. ($0.00/$0.00 per 1M tokens)",
+            "DeepSeek: R1 Distill Qwen 7B - DeepSeek-R1-Distill-Qwen-7B is a 7 billion parameter dense language model distilled from DeepSeek-R1, leveraging reinforcement learning-enhanced reasoning data generated by DeepSeek's larger models. The distillation process transfers advanced reasoning, math, and code capabilities into a smaller, more efficient model architecture based on Qwen2.5-Math-7B. This model demonstrates strong performance across mathematical benchmarks (92.8% pass@1 on MATH-500), coding tasks (Codeforces rating 1189), and general reasoning (49.1% pass@1 on GPQA Diamond), achieving competitive accuracy relative to larger models while maintaining smaller inference costs. ($0.10/$0.20 per 1M tokens)",
+            "Google: Gemini 2.5 Flash - Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in \"thinking\" capabilities, enabling it to provide responses with greater accuracy and nuanced context handling. \n\nAdditionally, Gemini 2.5 Flash is configurable through the \"max tokens for reasoning\" parameter, as described in the documentation (https://openrouter.ai/docs/use-cases/reasoning-tokens#max-tokens-for-reasoning). ($0.30/$2.50 per 1M tokens)",
+            "Google: Gemini 2.5 Flash Lite Preview 06-17 - Gemini 2.5 Flash-Lite is a lightweight reasoning model in the Gemini 2.5 family, optimized for ultra-low latency and cost efficiency. It offers improved throughput, faster token generation, and better performance across common benchmarks compared to earlier Flash models. By default, \"thinking\" (i.e. multi-pass reasoning) is disabled to prioritize speed, but developers can enable it via the [Reasoning API parameter](https://openrouter.ai/docs/use-cases/reasoning-tokens) to selectively trade off cost for intelligence.  ($0.10/$0.40 per 1M tokens)",
+            "Google: Gemini 2.5 Pro - Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs “thinking” capabilities, enabling it to reason through responses with enhanced accuracy and nuanced context handling. Gemini 2.5 Pro achieves top-tier performance on multiple benchmarks, including first-place positioning on the LMArena leaderboard, reflecting superior human-preference alignment and complex problem-solving abilities. ($1.25/$10.00 per 1M tokens)",
+            "Google: Gemini 2.5 Pro Preview 06-05 - Gemini 2.5 Pro is Google’s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs “thinking” capabilities, enabling it to reason through responses with enhanced accuracy and nuanced context handling. Gemini 2.5 Pro achieves top-tier performance on multiple benchmarks, including first-place positioning on the LMArena leaderboard, reflecting superior human-preference alignment and complex problem-solving abilities.\n ($1.25/$10.00 per 1M tokens)",
+            "Inception: Mercury - Mercury is the first diffusion large language model (dLLM). Applying a breakthrough discrete diffusion approach, the model runs 5-10x faster than even speed optimized models like GPT-4.1 Nano and Claude 3.5 Haiku while matching their performance. Mercury's speed enables developers to provide responsive user experiences, including with voice agents, search interfaces, and chatbots. Read more in the blog post here.  ($0.25/$1.00 per 1M tokens)",
+            "Kimi Dev 72b (free) - Kimi-Dev-72B is an open-source large language model fine-tuned for software engineering and issue resolution tasks. Based on Qwen2.5-72B, it is optimized using large-scale reinforcement learning that applies code patches in real repositories and validates them via full test suite execution—rewarding only correct, robust completions. The model achieves 60.4% on SWE-bench Verified, setting a new benchmark among open-source models for software bug fixing and code reasoning. ($0.00/$0.00 per 1M tokens)",
+            "MiniMax: MiniMax M1 - MiniMax-M1 is a large-scale, open-weight reasoning model designed for extended context and high-efficiency inference. It leverages a hybrid Mixture-of-Experts (MoE) architecture paired with a custom \"lightning attention\" mechanism, allowing it to process long sequences—up to 1 million tokens—while maintaining competitive FLOP efficiency. With 456 billion total parameters and 45.9B active per token, this variant is optimized for complex, multi-step reasoning tasks.\n\nTrained via a custom reinforcement learning pipeline (CISPO), M1 excels in long-context understanding, software engineering, agentic tool use, and mathematical reasoning. Benchmarks show strong performance across FullStackBench, SWE-bench, MATH, GPQA, and TAU-Bench, often outperforming other open models like DeepSeek R1 and Qwen3-235B. ($0.30/$1.65 per 1M tokens)",
+            "Mistral: Devstral Small - Devstral-Small-2505 is a 24B parameter agentic LLM fine-tuned from Mistral-Small-3.1, jointly developed by Mistral AI and All Hands AI for advanced software engineering tasks. It is optimized for codebase exploration, multi-file editing, and integration into coding agents, achieving state-of-the-art results on SWE-Bench Verified (46.8%).\n\nDevstral supports a 128k context window and uses a custom Tekken tokenizer. It is text-only, with the vision encoder removed, and is suitable for local deployment on high-end consumer hardware (e.g., RTX 4090, 32GB RAM Macs). Devstral is best used in agentic workflows via the OpenHands scaffold and is compatible with inference frameworks like vLLM, Transformers, and Ollama. It is released under the Apache 2.0 license. ($0.06/$0.12 per 1M tokens)",
+            "Mistral: Devstral Small (free) - Devstral-Small-2505 is a 24B parameter agentic LLM fine-tuned from Mistral-Small-3.1, jointly developed by Mistral AI and All Hands AI for advanced software engineering tasks. It is optimized for codebase exploration, multi-file editing, and integration into coding agents, achieving state-of-the-art results on SWE-Bench Verified (46.8%).\n\nDevstral supports a 128k context window and uses a custom Tekken tokenizer. It is text-only, with the vision encoder removed, and is suitable for local deployment on high-end consumer hardware (e.g., RTX 4090, 32GB RAM Macs). Devstral is best used in agentic workflows via the OpenHands scaffold and is compatible with inference frameworks like vLLM, Transformers, and Ollama. It is released under the Apache 2.0 license. ($0.00/$0.00 per 1M tokens)",
+            "Mistral: Magistral Medium 2506 - Magistral is Mistral's first reasoning model. It is ideal for general purpose use requiring longer thought processing and better accuracy than with non-reasoning LLMs. From legal research and financial forecasting to software development and creative storytelling — this model solves multi-step challenges where transparency and precision are critical. ($2.00/$5.00 per 1M tokens)",
+            "Mistral: Magistral Medium 2506 (thinking) - Magistral is Mistral's first reasoning model. It is ideal for general purpose use requiring longer thought processing and better accuracy than with non-reasoning LLMs. From legal research and financial forecasting to software development and creative storytelling — this model solves multi-step challenges where transparency and precision are critical. ($2.00/$5.00 per 1M tokens)",
+            "Mistral: Magistral Small 2506 - Magistral Small is a 24B parameter instruction-tuned model based on Mistral-Small-3.1 (2503), enhanced through supervised fine-tuning on traces from Magistral Medium and further refined via reinforcement learning. It is optimized for reasoning and supports a wide multilingual range, including over 20 languages. ($0.50/$1.50 per 1M tokens)",
+            "Mistral: Mistral Small 3.2 24B - Mistral-Small-3.2-24B-Instruct-2506 is an updated 24B parameter model from Mistral optimized for instruction following, repetition reduction, and improved function calling. Compared to the 3.1 release, version 3.2 significantly improves accuracy on WildBench and Arena Hard, reduces infinite generations, and delivers gains in tool use and structured output tasks.\n\nIt supports image and text inputs with structured outputs, function/tool calling, and strong performance across coding (HumanEval+, MBPP), STEM (MMLU, MATH, GPQA), and vision benchmarks (ChartQA, DocVQA). ($0.05/$0.10 per 1M tokens)",
+            "Mistral: Mistral Small 3.2 24B (free) - Mistral-Small-3.2-24B-Instruct-2506 is an updated 24B parameter model from Mistral optimized for instruction following, repetition reduction, and improved function calling. Compared to the 3.1 release, version 3.2 significantly improves accuracy on WildBench and Arena Hard, reduces infinite generations, and delivers gains in tool use and structured output tasks.\n\nIt supports image and text inputs with structured outputs, function/tool calling, and strong performance across coding (HumanEval+, MBPP), STEM (MMLU, MATH, GPQA), and vision benchmarks (ChartQA, DocVQA). ($0.00/$0.00 per 1M tokens)",
+            "Morph: Fast Apply - Morph Apply is a specialized code-patching LLM that merges AI-suggested edits straight into your source files. It can apply updates from GPT-4o, Claude, and others into your files at 4000+ tokens per second.\n\nThe model requires the prompt to be in the following format: \n<code>${originalCode}</code>\\n<update>${updateSnippet}</update>\n\nLearn more about this model in their [documentation](https://docs.morphllm.com/) ($1.20/$2.70 per 1M tokens)",
+            "OpenAI: o3 Pro - The o-series of models are trained with reinforcement learning to think before they answer and perform complex reasoning. The o3-pro model uses more compute to think harder and provide consistently better answers.\n\nNote that BYOK is required for this model. Set up here: https://openrouter.ai/settings/integrations ($20.00/$80.00 per 1M tokens)",
+            "Sarvam AI: Sarvam-M (free) - Sarvam-M is a 24 B-parameter, instruction-tuned derivative of Mistral-Small-3.1-24B-Base-2503, post-trained on English plus eleven major Indic languages (bn, hi, kn, gu, mr, ml, or, pa, ta, te). The model introduces a dual-mode interface: “non-think” for low-latency chat and a optional “think” phase that exposes chain-of-thought tokens for more demanding reasoning, math, and coding tasks. \n\nBenchmark reports show solid gains versus similarly sized open models on Indic-language QA, GSM-8K math, and SWE-Bench coding, making Sarvam-M a practical general-purpose choice for multilingual conversational agents as well as analytical workloads that mix English, native Indic scripts, or romanized text. ($0.00/$0.00 per 1M tokens)",
+            "TheDrummer: Anubis 70B V1.1 - TheDrummer's Anubis v1.1 is an unaligned, creative Llama 3.3 70B model focused on providing character-driven roleplay & stories. It excels at gritty, visceral prose, unique character adherence, and coherent narratives, while maintaining the instruction following Llama 3.3 70B is known for. ($0.30/$0.80 per 1M tokens)",
+            "TheDrummer: Valkyrie 49B V1 - Built on top of NVIDIA's Llama 3.3 Nemotron Super 49B, Valkyrie is TheDrummer's newest model drop for creative writing. ($0.50/$0.80 per 1M tokens)",
+            "xAI: Grok 3 - Grok 3 is the latest model from xAI. It's their flagship model that excels at enterprise use cases like data extraction, coding, and text summarization. Possesses deep domain knowledge in finance, healthcare, law, and science.\n\n ($3.00/$15.00 per 1M tokens)",
+            "xAI: Grok 3 Mini - A lightweight model that thinks before responding. Fast, smart, and great for logic-based tasks that do not require deep domain knowledge. The raw thinking traces are accessible. ($0.30/$0.50 per 1M tokens)"
+          ],
+          "order": 3
+        },
+        "flex.openRouterApiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenRouter API key for accessing AI models"
+          "description": "Your OpenRouter API key. This is required for all AI functionality. **[Get your API key here](https://openrouter.ai/settings/keys)** - Click the link to open OpenRouter's API key settings page.",
+          "markdownDescription": "Your OpenRouter API key. This is required for all AI functionality. **[Get your API key here](https://openrouter.ai/settings/keys)** - Click the link to open OpenRouter's API key settings page.",
+          "order": 2
         },
-        "flex.model": {
+        "flex.customAIModel": {
           "type": "string",
-          "default": "openai/gpt-4.1-mini",
-          "markdownDescription": "AI model to use for chat responses. You can search for available models in OpenRouter, or use the 'Flex Chat Bot: Select AI Model' command to see a list of models.\n\n[Browse models on OpenRouter](https://openrouter.ai/models)"
-        },
-        "flex.temperature": {
-          "type": "number",
-          "default": 0.7,
-          "minimum": 0,
-          "maximum": 2,
-          "description": "Controls randomness of responses. Lower is more deterministic, higher is more creative."
+          "default": "",
+          "description": "Specify your own custom model name here (only used when 'flex.aiModel' is set to 'custom').",
+          "order": 4
         }
       }
     },
     "menus": {
       "editor/title": [
         {
-          "when": "editorLangId == flex",
+          "when": "editorLangId == flex && !config.flex.enableAI",
           "command": "flex.runFile",
+          "group": "navigation"
+        },
+        {
+          "when": "editorLangId == flex && config.flex.enableAI",
+          "command": "flex.runFileWithAI",
           "group": "navigation"
         }
       ]
@@ -136,13 +266,29 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "echo Compilation not needed - grammar only extension",
-    "watch": "echo Watch not needed - grammar only extension",
-    "test": "node ./test/runTest.js"
+    "vscode:prepublish": "npm run update-models && npm run package",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out --module commonjs",
+    "watch-tests": "tsc -p . -w --outDir out --module commonjs",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "update-models": "node scripts/update-models.js"
   },
   "devDependencies": {
-    "@types/node": "^14.18.63",
-    "@types/vscode": "^1.75.0"
+    "@types/node": "16.x",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.2.0",
+    "eslint": "^8.28.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.1.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.0"
   }
 }

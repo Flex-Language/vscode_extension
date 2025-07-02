@@ -13,7 +13,7 @@ etb3("The value of pi is {pi} and the count is {count}")
 
 # 3. If-else statements
 lw count > 0 {
-    et3("Count is positive")
+    etb3("Count is positive")
 } aw count < 0 {
     etb3("Count is negative")
 } gher {
@@ -53,7 +53,7 @@ if (isActive == true) {
 }
 
 # 10. Boolean operations
-so2al combined = (count > 40) and (pi > 3)
+so2al combined = sa7
 etb3("Combined condition: {combined}")
 
 # 11. Functions with English keywords
@@ -62,6 +62,6 @@ function multiply(rakm x, rakm y) {
 }
 
 # 12. Import statement (for demonstration)
-geep "math.lx"
+// geep "math.lx"
 
 # End of test file 

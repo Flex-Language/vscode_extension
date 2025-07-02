@@ -1,0 +1,15 @@
+// Test file for strict variable declarations setting
+// When flex.strictVariableDeclarations is enabled, 
+// this file should show warnings for undeclared variables
+
+int declaredVar = 10
+string message = "Hello World"
+
+// These should NOT trigger warnings (variables are declared)
+etb3(declaredVar)
+output("{message}")
+
+// These SHOULD trigger warnings when strict mode is ON (undeclared variables)
+etb3(undeclaredVar)
+print(anotherUndeclaredVar)
+x = undeclaredVar + 5 

@@ -1,7 +1,11 @@
 {
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Flex",
   "scopeName": "source.flex",
-  "fileTypes": ["lx", "fx", "flex"],
+  "fileTypes": [
+    "flex",
+    "lx"
+  ],
   "patterns": [
     {
       "include": "#comments"
@@ -10,13 +14,22 @@
       "include": "#strings"
     },
     {
+      "include": "#function_definitions"
+    },
+    {
+      "include": "#function_calls"
+    },
+    {
+      "include": "#control_flow"
+    },
+    {
       "include": "#keywords"
     },
     {
       "include": "#types"
     },
     {
-      "include": "#functions"
+      "include": "#constants"
     },
     {
       "include": "#operators"
@@ -25,35 +38,39 @@
       "include": "#numbers"
     },
     {
-      "include": "#variables"
+      "include": "#lists"
+    },
+    {
+      "include": "#built_in_functions"
     },
     {
       "include": "#imports"
     },
     {
-      "include": "#list_operations"
-    },
-    {
-      "include": "#control_structures"
+      "include": "#variables"
     }
   ],
   "repository": {
     "comments": {
       "patterns": [
         {
-          "name": "comment.line.double-slash.flex",
-          "match": "//.*$"
-        },
-        {
           "name": "comment.line.number-sign.flex",
-          "match": "#.*$"
+          "begin": "#",
+          "end": "$",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.flex"
+            }
+          }
         },
         {
-          "name": "comment.block.flex",
-          "begin": "/\\*",
-          "end": "\\*/",
+          "name": "comment.line.double-slash.flex",
+          "begin": "//",
+          "end": "$",
           "captures": {
-            "0": { "name": "punctuation.definition.comment.flex" }
+            "0": {
+              "name": "punctuation.definition.comment.flex"
+            }
           }
         },
         {
@@ -61,67 +78,192 @@
           "begin": "'''",
           "end": "'''",
           "captures": {
-            "0": { "name": "punctuation.definition.comment.flex" }
+            "0": {
+              "name": "punctuation.definition.comment.flex"
+            }
+          }
+        },
+        {
+          "name": "comment.block.flex",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.flex"
+            }
           }
         }
       ]
     },
     "strings": {
-      "name": "string.quoted.double.flex",
-      "begin": "\"",
-      "end": "\"",
       "patterns": [
         {
-          "name": "constant.character.escape.flex",
-          "match": "\\\\."
+          "name": "string.quoted.double.flex",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.flex",
+              "match": "\\\\[\\\\\"nrt]"
+            },
+            {
+              "name": "variable.other.interpolated.flex",
+              "begin": "\\{",
+              "end": "\\}",
+              "captures": {
+                "0": {
+                  "name": "punctuation.definition.interpolation.flex"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#expressions"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "function_definitions": {
+      "patterns": [
+        {
+          "name": "meta.function.flex",
+          "begin": "\\b(fun|sndo2|sando2|fn|function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.function.flex"
+            },
+            "2": {
+              "name": "entity.name.function.flex"
+            }
+          },
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "#function_parameters"
+            }
+          ]
+        }
+      ]
+    },
+    "function_parameters": {
+      "patterns": [
+        {
+          "match": "\\b(rakm|kasr|ksr|so2al|s2al|so2l|klma|kalma|dorg|drg|int|float|bool|string|list)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "storage.type.flex"
+            },
+            "2": {
+              "name": "variable.parameter.flex"
+            }
+          }
         },
         {
-          "name": "variable.other.interpolated.flex",
-          "match": "\\{[^}]+\\}"
+          "match": "([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.flex"
+            }
+          }
+        }
+      ]
+    },
+    "function_calls": {
+      "patterns": [
+        {
+          "name": "meta.function-call.flex",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.flex"
+            }
+          }
+        }
+      ]
+    },
+    "control_flow": {
+      "patterns": [
+        {
+          "name": "keyword.control.conditional.flex",
+          "match": "\\b(lw|if|cond)\\b"
+        },
+        {
+          "name": "keyword.control.conditional.elif.flex",
+          "match": "\\b(aw|elif)\\b"
+        },
+        {
+          "name": "keyword.control.conditional.else.flex",
+          "match": "\\b(gher|else|otherwise)\\b"
+        },
+        {
+          "name": "keyword.control.loop.for.flex",
+          "match": "\\b(karr|krr|karar|for)\\b"
+        },
+        {
+          "name": "keyword.control.loop.until.flex",
+          "match": "\\b(l7d)\\b"
+        },
+        {
+          "name": "keyword.control.loop.while.flex",
+          "match": "\\b(talama|talma|tlma|while|loop)\\b"
+        },
+        {
+          "name": "keyword.control.return.flex",
+          "match": "\\b(rg3|raga3|return)\\b"
+        },
+        {
+          "name": "keyword.control.break.flex",
+          "match": "\\b(w2f|wa2af|break|stop)\\b"
         }
       ]
     },
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.control.flex",
-          "match": "\\b(lw|aw|gher|if|elif|else|otherwise|talama|talma|tlma|while|loop|karr|l7d|for|w2f|break|stop|rg3|return|cond)\\b"
-        },
-        {
-          "name": "keyword.other.flex",
-          "match": "\\b(geep|geeb|import)\\b"
-        },
-        {
-          "name": "constant.language.boolean.flex",
-          "match": "\\b(sa7|ghalt|true|false|True|False)\\b"
+          "name": "storage.type.function.flex",
+          "match": "\\b(fun|sndo2|sando2|fn|function)\\b"
         }
       ]
     },
     "types": {
       "patterns": [
         {
-          "name": "storage.type.flex",
-          "match": "\\b(rakm|kasr|so2al|klma|dorg|int|float|bool|string|list)\\b"
+          "name": "storage.type.primitive.integer.flex",
+          "match": "\\b(rakm|int)\\b"
+        },
+        {
+          "name": "storage.type.primitive.float.flex",
+          "match": "\\b(kasr|ksr|float)\\b"
+        },
+        {
+          "name": "storage.type.primitive.boolean.flex",
+          "match": "\\b(so2al|s2al|so2l|bool)\\b"
+        },
+        {
+          "name": "storage.type.primitive.string.flex",
+          "match": "\\b(klma|kalma|string)\\b"
+        },
+        {
+          "name": "storage.type.primitive.list.flex",
+          "match": "\\b(dorg|drg|list)\\b"
         }
       ]
     },
-    "functions": {
+    "constants": {
       "patterns": [
         {
-          "name": "entity.name.function.flex",
-          "match": "\\b(sndo2|sando2|fn|fun|function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\("
+          "name": "constant.language.boolean.true.flex",
+          "match": "\\b(sa7|s7|sah|saa7|true|True|TRUE)\\b"
         },
         {
-          "name": "entity.name.function.flex",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\("
+          "name": "constant.language.boolean.false.flex",
+          "match": "\\b(ghalt|ghlt|ghalat|false|False|FALSE)\\b"
         },
         {
-          "name": "support.function.flex",
-          "match": "\\b(etb3|out|output|printf|print|cout|scan|read|input|da5l|da5al|d5l)\\b"
-        },
-        {
-          "name": "support.function.list.flex",
-          "match": "\\.(push|pop|remove|delete|length)\\b"
+          "name": "constant.language.null.flex",
+          "match": "\\b(null|nil)\\b"
         }
       ]
     },
@@ -129,11 +271,11 @@
       "patterns": [
         {
           "name": "keyword.operator.arithmetic.flex",
-          "match": "\\+\\+|--|\\+=|-=|\\*=|/=|[+\\-*/]"
+          "match": "\\+\\+|--|\\+=|-=|\\*=|/=|%=|[+\\-*/%]"
         },
         {
           "name": "keyword.operator.comparison.flex",
-          "match": "==|!=|>|<|>=|<="
+          "match": "==|!=|>=|<=|>|<"
         },
         {
           "name": "keyword.operator.assignment.flex",
@@ -141,19 +283,125 @@
         },
         {
           "name": "keyword.operator.logical.flex",
-          "match": "\\b(and|or|not)\\b"
+          "match": "\\b(and|or|not)\\b|&&|\\|\\|"
         }
       ]
     },
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.integer.flex",
-          "match": "\\b[0-9]+\\b"
-        },
-        {
           "name": "constant.numeric.float.flex",
           "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.flex",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "lists": {
+      "patterns": [
+        {
+          "name": "meta.structure.list.flex",
+          "begin": "\\[",
+          "end": "\\]",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.list.flex"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#expressions"
+            }
+          ]
+        },
+        {
+          "include": "#list_methods"
+        },
+        {
+          "name": "meta.structure.list-access.flex",
+          "begin": "\\[",
+          "end": "\\]",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.list-access.flex"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#expressions"
+            }
+          ]
+        }
+      ]
+    },
+    "list_methods": {
+      "patterns": [
+        {
+          "name": "support.function.list-method.modification.flex",
+          "match": "\\.(push|pop|append|insert|clear|d7af|shyl|d5al)\\b"
+        },
+        {
+          "name": "support.function.list-method.removal.flex",
+          "match": "\\.(remove|delete|m7y)\\b"
+        },
+        {
+          "name": "support.function.list-method.query.flex",
+          "match": "\\.(find|contains)\\b"
+        },
+        {
+          "name": "support.function.list-method.transformation.flex",
+          "match": "\\.(reverse|sort|2leb|rtb|d7wer)\\b"
+        }
+      ]
+    },
+    "built_in_functions": {
+      "patterns": [
+        {
+          "name": "support.function.io.output.flex",
+          "match": "\\b(etb3|out|output|print|printf|cout)\\b"
+        },
+        {
+          "name": "support.function.io.input.flex",
+          "match": "\\b(da5l|da5al|d5l|scan|read|input)\\b"
+        },
+        {
+          "name": "support.function.string.flex",
+          "match": "\\b(length|tool|toul|7ajm|split|2sm|join|jam3|trim|n7f|upper|kbr|lower|sg7r|contains|fy)\\b"
+        },
+        {
+          "name": "support.function.math.flex",
+          "match": "\\b(sqrt|jzr|power|2ss|abs|mtl2|round|2rb|floor|ceil|min|asgar|max|akbar|random)\\b"
+        },
+        {
+          "name": "support.function.type.flex",
+          "match": "\\b(isNumber|isString|isList|isBool|rakm\\?|klma\\?|dorg\\?|so2al\\?)\\b"
+        },
+        {
+          "name": "support.function.system.flex",
+          "match": "\\b(getCurrentTime|wa2tHali|systemType|no3Nizam|getEnv|sleep|nam|fileExists|mlafM3jod|fileM3jod|listFiles)\\b"
+        },
+        {
+          "name": "support.function.file.flex",
+          "match": "\\b(readFile|2ra2File|qra2File|writeFile|katbFile|iktbFile|appendFile|zydFile|zayedFile|deleteFile|m7yFile|m7iFile)\\b"
+        },
+        {
+          "name": "support.function.potential.flex",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_?]*)(?=\\s*\\()",
+          "captures": {
+            "1": {
+              "name": "support.function.potential.flex"
+            }
+          }
+        }
+      ]
+    },
+    "imports": {
+      "patterns": [
+        {
+          "name": "keyword.control.import.flex",
+          "match": "\\b(geep|geeb|import)\\b"
         }
       ]
     },
@@ -165,53 +413,30 @@
         }
       ]
     },
-    "imports": {
+    "expressions": {
       "patterns": [
         {
-          "name": "keyword.control.import.flex",
-          "match": "\\b(geep|geeb|import)\\s+\"[^\"]*\""
-        }
-      ]
-    },
-    "list_operations": {
-      "patterns": [
-        {
-          "name": "variable.other.member.flex",
-          "match": "\\[[^\\]]*\\]"
+          "include": "#strings"
         },
         {
-          "name": "support.function.builtin.flex",
-          "match": "\\b(length)\\s*\\("
+          "include": "#numbers"
         },
         {
-          "name": "constant.language.flex",
-          "match": "\\[[^\\]]*\\]"
-        }
-      ]
-    },
-    "control_structures": {
-      "patterns": [
-        {
-          "name": "keyword.control.conditional.flex",
-          "match": "\\b(lw|if|cond)\\b"
+          "include": "#constants"
         },
         {
-          "name": "keyword.control.conditional.else.flex",
-          "match": "\\b(aw|elif)\\b"
+          "include": "#operators"
         },
         {
-          "name": "keyword.control.conditional.else.flex",
-          "match": "\\b(gher|else|otherwise)\\b"
+          "include": "#function_calls"
         },
         {
-          "name": "keyword.control.loop.flex",
-          "match": "\\b(karr|for)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*[^\\s]+\\s+l7d\\s+[^\\s]+"
+          "include": "#variables"
         },
         {
-          "name": "keyword.control.loop.flex",
-          "match": "\\b(talama|talma|tlma|while|loop)\\b"
+          "include": "#lists"
         }
       ]
     }
   }
-} 
+}

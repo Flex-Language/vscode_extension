@@ -1,0 +1,51 @@
+float u = 12
+int z = 3
+int qw = 99
+rakm i = 0
+rakm j = 1
+string x = "hello world to print in many ways"
+output("{x}")
+printf("to print {x}")
+
+// Different string variables to avoid redefinition
+string message1 = "First message"
+output("{message1}")
+
+string message2 = "Second message" 
+output("{message2}")
+
+int op = 8
+list d = [1, 2, 44]
+
+// Loop examples with proper Flex syntax
+karr yu = 5 l7d 10 {
+    etb3(op)
+}
+
+karr l7d 2 {
+    etb3(i)
+}
+
+karr l7d 2 {
+    etb3("---")
+}
+
+string str = "asdfgh"
+karr l7d length(str) {
+    etb3(str)
+}
+
+karr op l7d 12 {
+    etb3("sss")
+}
+
+karr j = 1 l7d 4 {
+    print(j)
+}
+
+// Traditional for loop
+for(i = 0; i < 10; i = i + 2) {
+   etb3("
+}
+
+etb3("Final output") 

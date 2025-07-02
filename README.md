@@ -139,10 +139,42 @@ To run a Flex program:
 3. Alternatively, click the "Run" icon in the editor title area
 4. Or use the Command Palette (Ctrl+Shift+P) and search for "Run Flex File"
 
+### AI-Powered Development 🤖✨
+
+The extension now includes AI-powered debugging and assistance:
+
+1. **Setup OpenRouter API Key**:
+   - Go to Settings → Extensions → Flex
+   - Click the link in "OpenRouter API Key" setting to get your API key
+   - Paste your API key in the setting field
+   - Enable "AI" in the Flex settings
+
+2. **Select AI Model**:
+   - **Settings Dropdown**: Go to Settings → Extensions → Flex → AI Model for a dropdown with 45+ models
+   - **Advanced Selection**: Use Command Palette: "Flex: Select AI Model" to choose from 100+ available models  
+   - **Refresh Models**: Use Command Palette: "Flex: Refresh OpenRouter Models" to update the model cache
+   - Popular models include GPT-4o, Claude 3.5 Sonnet, Llama 3.3, DeepSeek R1, and more with pricing info
+
+3. **Run with AI**:
+   - Click the "✨" (sparkle) icon next to the regular run button
+   - Or use Command Palette: "Run Flex File with AI"
+   - The AI will help debug errors and provide suggestions
+
+### Flex Compiler Installation
+
 If the Flex interpreter is not installed, the extension will:
 - Show an error message indicating that the interpreter is missing
 - Provide a "Download Flex" button that will take you to the Flex releases page
 - You'll need to download and install the appropriate version for your operating system
+
+### For Developers 🛠️
+
+The AI model dropdown is automatically populated with the latest models from OpenRouter during the build process:
+
+- **Automatic Updates**: Run `npm run update-models` to fetch the latest 300+ models from OpenRouter
+- **Build Integration**: Models are automatically refreshed during `npm run vscode:prepublish`
+- **Smart Selection**: 45+ models selected from popular and additional categories for optimal UX
+- **Rich Information**: Each model includes descriptions and pricing per million tokens
 
 ### Example
 
