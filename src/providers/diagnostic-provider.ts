@@ -353,8 +353,8 @@ export class FlexDiagnosticProvider {
                     const braceIndex = trimmedLine.indexOf('{');
                     const keywordEndIndex = keywordIndex + pattern.keyword.length;
 
-                    // Simple check: brace should come after the keyword
-                    if (braceIndex > keywordEndIndex) {
+                    // Simple check: brace should come after the keyword (including immediately after)
+                    if (braceIndex >= keywordEndIndex) {
                         hasBrace = true;
                     }
                 }
@@ -555,6 +555,10 @@ export class FlexDiagnosticProvider {
             return;
         }
 
+        if (!strictMode) {
+            return;
+        }
+
         const trimmedLine = line.trim();
 
         // Skip comments and empty lines
@@ -637,6 +641,11 @@ export class FlexDiagnosticProvider {
 
         // Loop variable declarations
         if (line.match(/\bkarr\s+[a-zA-Z_][a-zA-Z0-9_]*\s*=/)) {
+            return true;
+        }
+
+        // C-style for loop variable declarations
+        if (line.match(/\bfor\s*\(\s*[a-zA-Z_][a-zA-Z0-9_]*\s*=/)) {
             return true;
         }
 
@@ -761,6 +770,16 @@ export class FlexDiagnosticProvider {
             const loopMatch = cleanLine.match(loopVarRegex);
             if (loopMatch) {
                 const variableName = loopMatch[1];
+                if (!declaredVariables.includes(variableName)) {
+                    declaredVariables.push(variableName);
+                }
+            }
+
+            // Look for C-style for loop variable declarations
+            const forLoopRegex = /\bfor\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=/;
+            const forMatch = cleanLine.match(forLoopRegex);
+            if (forMatch) {
+                const variableName = forMatch[1];
                 if (!declaredVariables.includes(variableName)) {
                     declaredVariables.push(variableName);
                 }
