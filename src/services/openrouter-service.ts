@@ -21,6 +21,35 @@ export class OpenRouterService {
     /**
  * Fetch available models from OpenRouter API
  */
+    /**
+     * Get all available models, either from cache or by fetching from the API
+     */
+    public static async getModels(context: vscode.ExtensionContext): Promise<OpenRouterModel[]> {
+        // Try to get from cache first
+        const cachedModels = context.globalState.get<{models: OpenRouterModel[], timestamp: number}>(this.CACHE_KEY);
+        const now = Date.now();
+        
+        if (cachedModels && now - cachedModels.timestamp < this.CACHE_DURATION) {
+            console.log('📦 Using cached models');
+            return cachedModels.models;
+        }
+        
+        // If not in cache or cache expired, fetch from API
+        console.log('🔄 Fetching models from OpenRouter API...');
+        const models = await this.fetchAvailableModels();
+        
+        // Update cache
+        await context.globalState.update(this.CACHE_KEY, {
+            models,
+            timestamp: now
+        });
+        
+        return models;
+    }
+
+    /**
+     * Fetch available models from OpenRouter API
+     */
     public static async fetchAvailableModels(): Promise<OpenRouterModel[]> {
         return new Promise((resolve, reject) => {
             try {
@@ -230,7 +259,7 @@ export class OpenRouterService {
     public static createModelEnumDescriptions(models: OpenRouterModel[]): string[] {
         const descriptions = [
             'Use the Flex compiler\'s built-in default AI model',
-            'Use a custom model specified in the \'flex.customAIModel\' setting'
+            'Use a custom model specified in the Flex settings (flex.aiModel)'
         ];
 
         // Add descriptions for enum values

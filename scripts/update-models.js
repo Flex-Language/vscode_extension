@@ -62,69 +62,83 @@ function fetchOpenRouterModels() {
 }
 
 /**
- * Get popular models first, then others
+ * Categorize models by provider and features
+ */
+function categorizeModels(models) {
+    const categories = {
+        openai: [],
+        anthropic: [],
+        google: [],
+        meta: [],
+        mistral: [],
+        deepseek: [],
+        other: []
+    };
+
+    // Categorize models by provider
+    models.forEach(model => {
+        const id = model.id.toLowerCase();
+        if (id.startsWith('openai/')) {
+            categories.openai.push(model);
+        } else if (id.startsWith('anthropic/') || id.startsWith('claude')) {
+            categories.anthropic.push(model);
+        } else if (id.startsWith('google/') || id.startsWith('gemini')) {
+            categories.google.push(model);
+        } else if (id.startsWith('meta-llama/') || id.startsWith('llama')) {
+            categories.meta.push(model);
+        } else if (id.startsWith('mistral') || id.startsWith('mixtral')) {
+            categories.mistral.push(model);
+        } else if (id.includes('deepseek')) {
+            categories.deepseek.push(model);
+        } else {
+            categories.other.push(model);
+        }
+    });
+
+    // Sort each category by model name/ID
+    Object.values(categories).forEach(category => {
+        category.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+    });
+
+    return categories;
+}
+
+/**
+ * Organize models for the settings UI
  */
 function organizeModels(models) {
-    const popularModels = [
-        'openai/gpt-4o-mini',
-        'openai/gpt-4o',
-        'anthropic/claude-3.5-sonnet',
-        'meta-llama/llama-3.3-70b-instruct',
-        'google/gemini-pro',
-        'anthropic/claude-3-haiku',
-        'microsoft/wizardlm-2-8x22b',
-        'cohere/command-r-plus',
-        'anthropic/claude-3-opus',
-        'openai/gpt-3.5-turbo',
-        'meta-llama/llama-3-8b-instruct',
-        'meta-llama/llama-3-70b-instruct',
-        'google/gemini-flash-1.5',
-        'anthropic/claude-3-sonnet',
-        'perplexity/llama-3.1-sonar-large-128k-online'
-    ];
-
-    // Start with default and custom
-    const enumValues = ['default', 'custom'];
-    const enumDescriptions = [
-        'Use the Flex compiler\'s built-in default AI model',
-        'Use a custom model specified in the \'flex.customAIModel\' setting'
-    ];
-
-    // Add popular models that exist in the API response
-    const modelMap = new Map(models.map(m => [m.id, m]));
-
-    for (const popularId of popularModels) {
-        const model = modelMap.get(popularId);
-        if (model) {
+    // Start with default model
+    const enumValues = ['default'];
+    
+    // Categorize models
+    const categories = categorizeModels(models);
+    
+    // Add models by provider without separators for better search
+    const addModels = (models) => {
+        if (!models || models.length === 0) return;
+        
+        // Sort models by name for better organization
+        const sortedModels = [...models].sort((a, b) => 
+            (a.name || a.id).localeCompare(b.name || b.id)
+        );
+        
+        // Add model IDs
+        sortedModels.forEach(model => {
             enumValues.push(model.id);
-            let description = `${model.name || model.id} - ${model.description || 'No description available'}`;
-            if (model.pricing) {
-                const promptPrice = parseFloat(model.pricing.prompt) * 1000000;
-                const completionPrice = parseFloat(model.pricing.completion) * 1000000;
-                description += ` ($${promptPrice.toFixed(2)}/$${completionPrice.toFixed(2)} per 1M tokens)`;
-            }
-            enumDescriptions.push(description);
-        }
-    }
+        });
+    };
 
-    // Add remaining models (limited to keep settings UI manageable)
-    const remainingModels = models
-        .filter(m => !popularModels.includes(m.id))
-        .slice(0, 30) // Limit to 30 additional models
-        .sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+    // Add models in a logical order, but without category headers
+    // to improve search experience in the settings dropdown
+    addModels(categories.openai);
+    addModels(categories.anthropic);
+    addModels(categories.google);
+    addModels(categories.meta);
+    addModels(categories.mistral);
+    addModels(categories.deepseek);
+    addModels(categories.other);
 
-    for (const model of remainingModels) {
-        enumValues.push(model.id);
-        let description = `${model.name || model.id} - ${model.description || 'No description available'}`;
-        if (model.pricing) {
-            const promptPrice = parseFloat(model.pricing.prompt) * 1000000;
-            const completionPrice = parseFloat(model.pricing.completion) * 1000000;
-            description += ` ($${promptPrice.toFixed(2)}/$${completionPrice.toFixed(2)} per 1M tokens)`;
-        }
-        enumDescriptions.push(description);
-    }
-
-    return { enumValues, enumDescriptions };
+    return { enumValues };
 }
 
 /**
@@ -138,22 +152,20 @@ async function updatePackageJson() {
         const models = await fetchOpenRouterModels();
 
         // Organize models with popular ones first
-        const { enumValues, enumDescriptions } = organizeModels(models);
+        const { enumValues } = organizeModels(models);
 
         // Read package.json
         const packagePath = path.join(__dirname, '..', 'package.json');
         const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
 
         // Update the aiModel configuration
-        if (packageJson.contributes &&
-            packageJson.contributes.configuration &&
-            packageJson.contributes.configuration.properties &&
-            packageJson.contributes.configuration.properties['flex.aiModel']) {
-
-            const aiModelConfig = packageJson.contributes.configuration.properties['flex.aiModel'];
-            aiModelConfig.enum = enumValues;
-            aiModelConfig.enumDescriptions = enumDescriptions;
-            aiModelConfig.description = `Select an AI model from ${models.length} available OpenRouter models. Popular models are shown first.`;
+        if (packageJson.contributes?.configuration?.properties?.['flex.aiModel']) {
+            packageJson.contributes.configuration.properties['flex.aiModel'].enum = enumValues;
+            // Remove enumDescriptions if it exists
+            if (packageJson.contributes.configuration.properties['flex.aiModel'].enumDescriptions) {
+                delete packageJson.contributes.configuration.properties['flex.aiModel'].enumDescriptions;
+            }
+            packageJson.contributes.configuration.properties['flex.aiModel'].description = `Select an AI model from ${models.length} available OpenRouter models. Models are organized by provider for easier navigation.`;
 
             console.log(`✅ Updated package.json with ${enumValues.length} model options`);
         }

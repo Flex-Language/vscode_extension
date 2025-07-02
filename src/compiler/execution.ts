@@ -111,10 +111,10 @@ export async function runFlexFileWithAI(): Promise<void> {
     // --- Step 4: Determine AI model ---
     let aiModel = config.get<string>('aiModel', 'default');
     if (aiModel === 'custom') {
-        const customModel = config.get<string>('customAIModel', '').trim();
-        if (!customModel) {
-            vscode.window.showErrorMessage('AI model is set to "custom", but no custom model name is provided. Please set "flex.customAIModel".');
-            return;
+        const customModel = config.get<string>('aiModel', '').trim();
+        if (customModel === '') {
+            vscode.window.showErrorMessage('AI model is set to "custom", but no custom model name is provided. Please select a model from the settings.');
+            return; // Just return without a value
         }
         aiModel = customModel;
     }
