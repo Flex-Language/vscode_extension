@@ -62,8 +62,16 @@ This extension provides comprehensive language support for the Flex programming 
   - Run button in the status bar when editing Flex files
   - Run button in the editor title area
   - Command palette option: "Run Flex File"
+  - AI-powered debugging with the ✨ button
   - Automatic Flex interpreter detection with download prompt if not found
   - On macOS, directly uses the 'flex' command without complex path searching
+
+- **AI Model Selection**:
+  - Search across 300+ AI models from various providers
+  - Real-time search with instant results
+  - Recently used models appear at the top
+  - Detailed model information and pricing
+  - One-click model switching
 
 ## Installation
 
@@ -141,7 +149,7 @@ To run a Flex program:
 
 ### AI-Powered Development 🤖✨
 
-The extension now includes AI-powered debugging and assistance:
+The extension includes advanced AI-powered debugging and assistance with support for 300+ models from OpenRouter:
 
 1. **Setup OpenRouter API Key**:
    - Go to Settings → Extensions → Flex
@@ -150,15 +158,16 @@ The extension now includes AI-powered debugging and assistance:
    - Enable "AI" in the Flex settings
 
 2. **Select AI Model**:
-   - **Settings Dropdown**: Go to Settings → Extensions → Flex → AI Model for a dropdown with 45+ models
-   - **Advanced Selection**: Use Command Palette: "Flex: Select AI Model" to choose from 100+ available models  
-   - **Refresh Models**: Use Command Palette: "Flex: Refresh OpenRouter Models" to update the model cache
-   - Popular models include GPT-4o, Claude 3.5 Sonnet, Llama 3.3, DeepSeek R1, and more with pricing info
+   - **Search & Select**: Use Command Palette (Ctrl+Shift+P) → "Flex: Search AI Models" to search through all available models
+   - **Quick Access**: Your 5 most recently used models appear at the top of the search results
+   - **Real-time Search**: Type to filter models by name, provider, or capability
+   - **Model Details**: View details like context window size and pricing before selecting
+   - **Refresh Models**: Use Command Palette → "Flex: Refresh OpenRouter Models" to update the model cache
 
 3. **Run with AI**:
-   - Click the "✨" (sparkle) icon next to the regular run button
+   - Click the "✨" (sparkle) icon in the editor title bar
    - Or use Command Palette: "Run Flex File with AI"
-   - The AI will help debug errors and provide suggestions
+   - The AI will analyze your code, suggest fixes, and provide explanations
 
 ### Flex Compiler Installation
 
@@ -169,12 +178,27 @@ If the Flex interpreter is not installed, the extension will:
 
 ### For Developers 🛠️
 
-The AI model dropdown is automatically populated with the latest models from OpenRouter during the build process:
+The extension includes a powerful model management system:
 
-- **Automatic Updates**: Run `npm run update-models` to fetch the latest 300+ models from OpenRouter
-- **Build Integration**: Models are automatically refreshed during `npm run vscode:prepublish`
-- **Smart Selection**: 45+ models selected from popular and additional categories for optimal UX
-- **Rich Information**: Each model includes descriptions and pricing per million tokens
+- **Model Management**:
+  - Run `npm run update-models` to fetch the latest 300+ models from OpenRouter
+  - Models are automatically refreshed during `npm run vscode:prepublish`
+  - Caching system prevents unnecessary API calls (24-hour TTL)
+
+- **Search Implementation**:
+  - Real-time search with debounced input for performance
+  - Case-insensitive matching against model names and providers
+  - Results sorted by relevance and recency of use
+
+- **UI Components**:
+  - Custom search input with loading states
+  - Detailed model information display
+  - Error handling and user feedback
+
+- **Performance**:
+  - Efficient model caching in VSCode's global state
+  - Lazy loading of model details
+  - Optimized search algorithm for responsive performance
 
 ### Example
 
